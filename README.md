@@ -1,0 +1,1 @@
+This is a small Discord bot made with discord.py, used on the guild HoQ, and guilds related to it

@@ -1,0 +1,5 @@
+aiohttp
+git+https://github.com/Rapptz/discord.py@master#egg=discord.py
+youtube-dl
+pynacl
+opuslib
