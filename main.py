@@ -3,7 +3,7 @@ import discord
 import asyncio
 import aiohttp
 import json
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
@@ -17,6 +17,7 @@ class HoQBot(commands.Bot):
 		for i in os.scandir(path = "cogs"):
 			if i.name.endswith(".py"):
 				self.load_extension(f"cogs.{i.name[:-3]}")
+		self.printer.start()
 	
 	async def on_connect(self):
 		self.session = aiohttp.ClientSession()
@@ -77,6 +78,15 @@ class HoQBot(commands.Bot):
 		
 		elif isinstance(error, commands.CheckFailure):
 			await ctx.reply(embed = discord.Embed(description = f"{error}", color = discord.Color.red()))
+
+	@tasks.loop(hours = 24.0)
+	async def printer(self):
+		filelist = []
+		for i in os.scandir(path = "data"):
+			with open(f"data/{i.name}", "rb") as fob:
+				filelist.append(discord.File(fp = fob))
+		c = await self.bot.fetch_channel(850039242481991703)
+		await c.send(files = filelist)
 			
 bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
 

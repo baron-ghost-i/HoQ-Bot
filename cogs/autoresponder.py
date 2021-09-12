@@ -203,7 +203,7 @@ class Autoresponder(commands.Cog):
 			channel = self.bot.get_channel(612251604132823071)
 			await asyncio.sleep(0.5)
 			await channel.send(f'''Welcome to HoQ {member.mention}! To get verified, post a link to your Quora account. If you do not have a Quora account, let us know how you found the server.
-Thank you for your patience! A moderator will verify you shortly.''') 
+Thank you for your patience! A moderator will verify you shortly.''')
 
 def setup(bot):
 	bot.add_cog(Autoresponder(bot))

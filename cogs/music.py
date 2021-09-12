@@ -98,14 +98,15 @@ class Music(commands.Cog):
 		except:
 			raise
 
-	@commands.command()
+	@commands.command(aliases = ("p",))
 	@commands.guild_only()
 	async def pause(self, ctx: commands.Context):
 		if ctx.voice_client.is_playing():
 			await ctx.send("Paused!")
 			ctx.voice_client.pause()
 		elif ctx.voice_client.is_paused():
-			await ctx.send("Player is already paused!")
+			await ctx.send("Playing!")
+			ctx.voice_client.resume()
 		else:
 			await ctx.send("Not playing anything!")
 
