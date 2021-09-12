@@ -9,13 +9,13 @@ Currently, the bot can:
 * Show information about a guild (commonly called *server*)
 * Carry out moderation functions, like kicking, banning, unbanning, warning users, etc.
 * Return edited and deleted messages
-* Search for xkcd comicx
+* Search for xkcd comics
 * ...
 * And more
 
 Future plans:
 - [ ] Add more slash commmands
-- [ ] Add a loop to retrieve data automatically
+- [X] Add a loop to retrieve data automatically
 - [ ] Create a game of hangman
 - [ ] Implement a queue for music
 
