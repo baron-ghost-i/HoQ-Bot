@@ -207,7 +207,7 @@ class Moderation(commands.Cog):
 	async def defaultrole(self, ctx: commands.Context, *, role: discord.Role):
 		self.db[str(ctx.guild.id)] = role.id
 		with open("data/db.json", "w") as foo:
-			foo.write(json.dumps(self.db))
+			foo.write(json.dumps(self.db, indent = 2))
 		await ctx.send(embed = discord.Embed(description = f"Set default role to {role.mention}", color = 0x00FF77))
 	
 	@commands.command()

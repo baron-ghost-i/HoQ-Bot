@@ -89,7 +89,7 @@ async def printer(bot):
 	for i in os.scandir(path = "data"):
 		with open(f"data/{i.name}", "rb") as fob:
 			filelist.append(discord.File(fp = fob))
-	c = await bot.fetch_channel(850039242481991703)
+	c = await bot.fetch_channel(886950779305492570)
 	await c.send(files = filelist)
 
 @bot.command()
