@@ -88,7 +88,7 @@ async def printer(bot):
 	filelist = []
 	for i in os.scandir(path = "data"):
 		with open(f"data/{i.name}", "rb") as fob:
-			filelist.append(discord.File(fp = fob))
+			filelist.append(discord.File(filename = i.name, fp = fob))
 	c = await bot.fetch_channel(886950779305492570)
 	await c.send(files = filelist)
 
@@ -111,7 +111,7 @@ async def getfiles(ctx):
 	filelist = []
 	for i in os.scandir(path = "data"):
 		with open(f"data/{i.name}", "rb") as fob:
-			filelist.append(discord.File(fp = fob))
+			filelist.append(discord.File(filename = i.name, fp = fob))
 	await ctx.send(files = filelist)
 
 printer.start(bot)
