@@ -1,9 +1,9 @@
 import discord
 import inspect
+import typing
 import datetime
 from discord.ext import commands
 from utils import paginatorview
-import typing
 
 class Emojis(commands.Cog):
 	def __init__(self, bot):
