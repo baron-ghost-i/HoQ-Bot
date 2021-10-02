@@ -216,7 +216,7 @@ class Moderation(commands.Cog):
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
 		with open("data/roles.json", "r") as foo:
 			data = json.loads(foo.read())
-		roles = member.roles
+		roles = []
 		if str(member.id) in data[str(ctx.guild.id)].keys():
 			for i in data[str(ctx.guild.id)][str(member.id)]:
 				role = discord.utils.find(lambda role: role.id == i, ctx.guild.roles)
