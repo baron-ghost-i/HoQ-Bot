@@ -118,5 +118,4 @@ async def getfiles(ctx):
 	await ctx.send(files = filelist)
 
 printer.start(bot)
-
 bot.run(token)
