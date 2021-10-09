@@ -1,3 +1,4 @@
+import json
 import discord
 from discord.ext import commands
 
@@ -106,6 +107,29 @@ class Fun(commands.Cog):
 		view = TTTView(p1 = ctx.author, p2 = p2)
 		await ctx.send(content = f"Tic tac toe!\n{p2.mention}'s turn to play", view = view)
 		await view.wait()
+
+	@commands.command()
+	async def hug(self, ctx, user: discord.Member = None):
+		if user == None:
+			string = f"*{ctx.author.mention} hugs themselves! ;-;*"
+		else:
+			string = f"*{ctx.author.mention} hugs {user.mention}!*"
+		async with self.bot.session.get(r"https://some-random-api.ml/animu/hug") as request:
+			try:
+				assert int(request.status) == 200
+				data: dict = json.loads(await request.text())
+				assert "link" in data.keys()
+			except AssertionError:
+				raise discord.HTTPException("An error occurred!")
+			except:
+				raise
+			else:
+				url = data.get("link")
+				embed = discord.Embed(color = 0x50C878, description = string)
+				embed.set_image(url = url)
+				embed.set_footer(text = "Credit for all GIFs goes to https://some-random-api.ml")
+				await ctx.send(embed = embed)
+
 
 	#I'll make it later
 	'''@commands.command()

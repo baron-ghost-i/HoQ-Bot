@@ -95,15 +95,18 @@ async def printer(bot):
 @bot.command()
 @commands.check(isme)
 async def reload(ctx, *, extension = None):
-	if extension != None:
-		try:
-			ctx.bot.reload_extension(name = f"cogs.{extension}")
-		except:
-			await ctx.send("Extension not found")
-	else:
-		for i in ctx.bot.extensions:
-			ctx.bot.reload_extension(name = i)
-	await ctx.send("Reloaded!")
+	try:
+		if extension != None:
+			try:
+				ctx.bot.reload_extension(name = f"cogs.{extension}")
+			except:
+				await ctx.send("Extension not found")
+		else:
+			for i in ctx.bot.extensions:
+				ctx.bot.reload_extension(name = i)
+		await ctx.send("Reloaded!")
+	except:
+		raise
 
 @bot.command(aliases = ("files", "filelist"))
 @commands.check(isme)
