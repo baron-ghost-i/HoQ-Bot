@@ -117,6 +117,12 @@ async def getfiles(ctx):
 			filelist.append(discord.File(filename = i.name, fp = fob))
 	await ctx.send(files = filelist)
 
+@bot.command()
+@commands.check(isme)
+async def guilds(ctx: commands.Context):
+	guilds = [i.name for i in ctx.bot.guilds]
+	await ctx.send("\n".join(guilds))
+	
 printer.start(bot)
 
 bot.run(token)

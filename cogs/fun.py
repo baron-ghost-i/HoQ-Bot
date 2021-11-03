@@ -130,6 +130,11 @@ class Fun(commands.Cog):
 				embed.set_footer(text = "Credit for all GIFs goes to https://some-random-api.ml")
 				await ctx.send(embed = embed)
 
+	@commands.command()
+	async def confetti(self, ctx):
+		with open("/home/vcap/app/media/confetti.gif", "rb") as gif:
+			await ctx.send(file = discord.File(gif))
+		return
 
 	#I'll make it later
 	'''@commands.command()
