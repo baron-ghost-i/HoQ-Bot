@@ -124,5 +124,4 @@ async def guilds(ctx: commands.Context):
 	await ctx.send("\n".join(guilds))
 	
 printer.start(bot)
-
 bot.run(token)
