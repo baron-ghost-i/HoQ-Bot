@@ -75,6 +75,21 @@ class Emojis(commands.Cog):
 				embd.set_image(url = url)
 				await ctx.channel.send(embed = embd)
 
+	@commands.command(aliases = ("enlarge2",))
+	async def e2(self, ctx, *, name: str):
+		name = name.replace(" ", "_")
+		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), ctx.guild.emojis)
+		try:
+			assert emoji != None
+		except AssertionError:
+			raise commands.EmojiNotFound(name)
+		except:
+			raise
+		else:
+			embed = discord.Embed(timestamp = discord.utils.utcnow())
+			embed.set_image(url = emoji.url)
+			await ctx.send(embed = embed)
+
 	@commands.command(aliases = ("addemoji", "addem"))
 	@commands.has_permissions(manage_emojis = True)
 	async def uploademoji(self, ctx, *args):
