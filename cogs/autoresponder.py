@@ -26,11 +26,12 @@ class Autoresponder(commands.Cog):
 				return False
 			return True
 		return commands.check(predicate)
-	
+
 	@commands.Cog.listener()
 	async def on_message(self, ctx: discord.Message):
 		if ctx.channel.type == discord.ChannelType.private:
 			return
+			
 		id = self.id(ctx.guild.id)
 		flag1, flag2, message = False, False, ctx.content
 		with open("data/autoresponses.json", "r") as foo:
@@ -39,7 +40,7 @@ class Autoresponder(commands.Cog):
 		if ctx.guild == None or str(id) not in content.keys():
 			return
 		
-		if ctx.author == self.bot.user:
+		if ctx.author.bot:
 			return
 
 		nonwildkeys, nonwildresp = [i["trigger"] for i in content[f"{id}"]["normal"]], [i["resp"] for i in content[f"{id}"]["normal"]]
@@ -183,10 +184,12 @@ class Autoresponder(commands.Cog):
 		except AssertionError:
 			await ctx.send("No autoresponse for this guild! Try using `h!addresponse` to create a new response")
 		else:
-			nonwild, wild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["normal"]], ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["wildcard"]]
+			nonwild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["normal"]]
+			wild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["wildcard"]]
 			normresp = "__**Normal autoresponses:**__\n"+"\n".join(nonwild)
 			wildresp = "__**Wildcards:**__\n"+"\n".join(wild)
 			response = normresp + "\n\n" + wildresp
+			response = response.replace("`\"None\"` — `\"None\"`", "None")
 			try:
 				assert len(response) <= 4096
 			except AssertionError:
