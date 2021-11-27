@@ -22,9 +22,6 @@ class Slashcommands:
     async def ping(self):
 	    await self.interaction.response.send_message(f"Ping: {round(self.bot.latency*1000)} ms")
 
-    async def test(self):
-	    await self.interaction.response.send_message(str(self.data))
-
     async def addresponse(self):
 	    if any(["__" in self.data["response"], "lambda" in self.data["response"]]):
 		    await self.interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
