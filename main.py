@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 import json
 from discord.ext import commands, tasks
+from slash import Slashcommands
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
@@ -21,12 +22,14 @@ class HoQBot(commands.Bot):
 	async def on_connect(self):
 		self.session = aiohttp.ClientSession()
 
-	async def on_interaction(self, interaction):
+	async def on_interaction(self, interaction: discord.Interaction):
+		slash = Slashcommands(self, interaction)
 		if interaction.type != discord.InteractionType.application_command:
 			return
-			
-		if interaction.data["name"] == "ping":
-			await interaction.response.send_message(f"Ping: {round(self.latency*1000)} ms")
+		try:
+			await getattr(Slashcommands, interaction.data["name"])(slash)
+		except AttributeError:
+			raise
 		
 	async def on_ready(self):
 		c = self.get_channel(850039242481991703)
