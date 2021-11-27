@@ -14,7 +14,7 @@ Currently, the bot can:
 * And more
 
 Future plans:
-- [ ] Add more slash commmands
+- [] ~Add more slash commmands~ Create a systematic approach to handling slash commands
 - [X] Add a loop to retrieve data automatically
 - [ ] Create a game of hangman
 - [ ] Implement a queue for music
