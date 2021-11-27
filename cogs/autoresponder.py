@@ -9,7 +9,7 @@ from utils import paginatorview
 class Autoresponder(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.nonepair = {"trigger": None, "resp": None}
+		self.nonepair = {"trigger": None, "response": None}
 
 	def id(self, id: int):
 		if any([id == 850039242481991700, id == 808257138882641960, id == 839939906558361627, id == 786520972064587786]):
@@ -43,9 +43,9 @@ class Autoresponder(commands.Cog):
 		if ctx.author.bot:
 			return
 
-		nonwildkeys, nonwildresp = [i["trigger"] for i in content[f"{id}"]["normal"]], [i["resp"] for i in content[f"{id}"]["normal"]]
+		nonwildkeys, nonwildresp = [i["trigger"] for i in content[f"{id}"]["normal"]], [i["response"] for i in content[f"{id}"]["normal"]]
 
-		wildkeys, wildresp = [i["trigger"] for i in content[f"{id}"]["wildcard"]], [i["resp"] for i in content[f"{id}"]["wildcard"]]
+		wildkeys, wildresp = [i["trigger"] for i in content[f"{id}"]["wildcard"]], [i["response"] for i in content[f"{id}"]["wildcard"]]
 
 		if any([message.lower() == "oop-", message.lower().startswith("oop- "), message.lower().endswith("oop-"), " oop- " in message.lower()]):
 			await ctx.add_reaction("<:eyez:684985729780154370>")
@@ -113,7 +113,7 @@ class Autoresponder(commands.Cog):
 			ctype, ctype2 = "normal", "wildcard"
 		else:
 			ctype, ctype2 = "wildcard", "normal"
-		pair = {"trigger": trigger, "resp": response}
+		pair = {"trigger": trigger, "response": response}
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
 		try:
@@ -184,8 +184,8 @@ class Autoresponder(commands.Cog):
 		except AssertionError:
 			await ctx.send("No autoresponse for this guild! Try using `h!addresponse` to create a new response")
 		else:
-			nonwild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["normal"]]
-			wild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["resp"]) for i in content[str(id)]["wildcard"]]
+			nonwild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["response"]) for i in content[str(id)]["normal"]]
+			wild = ["• `\"{}\"` — `\"{}\"`".format(i["trigger"], i["response"]) for i in content[str(id)]["wildcard"]]
 			normresp = "__**Normal autoresponses:**__\n"+"\n".join(nonwild)
 			wildresp = "__**Wildcards:**__\n"+"\n".join(wild)
 			response = normresp + "\n\n" + wildresp
