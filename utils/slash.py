@@ -3,8 +3,9 @@ import json
 from utils.utils import guildid
 
 class SelectMenu(discord.ui.Select):
-	def __init__(self, gid: int, wildcard: bool):
+	def __init__(self, gid: int, wildcard: bool, user):
 		opts = []
+		self._user = user
 		self.blankopt = discord.SelectOption(label = "None")
 		typedict = {True: "wildcard", False: "normal"}
 		self.id = gid
@@ -24,6 +25,11 @@ class SelectMenu(discord.ui.Select):
 		if self.blankopt in self.options:
 			self.view.stop()
 			return
+
+		if interaction.user != self._user:
+			await interaction.response.send_message("You cannot use this select menu", ephemeral=True)
+			return
+
 		trigger = interaction.data["values"][0]
 		with open("data/autoresponses.json") as fob:
 			data = json.loads(fob.read())
