@@ -96,7 +96,7 @@ class Autoresponder(commands.Cog):
 			await ctx.send("Cannot add that autoresponse")
 			return
 
-		id = self.id(ctx.guild.id)
+		id = guildid(ctx.guild.id)
 		if wildcard == None or wildcard.lower() != "wildcard":
 			ctype, ctype2 = "normal", "wildcard"
 		else:
@@ -121,7 +121,7 @@ class Autoresponder(commands.Cog):
 	@commands.command(aliases = ("removeresp",))
 	@ownercheck()
 	async def removeresponse(self, ctx: commands.Context, *, trigger: str):
-		id = self.id(ctx.guild.id)
+		id = guildid(ctx.guild.id)
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
 		try:
@@ -164,7 +164,7 @@ class Autoresponder(commands.Cog):
 	@commands.command(aliases = ("responses", "resps", "autoresps"))
 	@commands.guild_only()
 	async def autoresponses(self, ctx: commands.Context):
-		id = self.id(ctx.guild.id)
+		id = guildid(ctx.guild.id)
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
 		try:
