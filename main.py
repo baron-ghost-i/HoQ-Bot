@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import json
 from discord.ext import commands, tasks
-from slash import Slashcommands
+from utils.slash import Slashcommands
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
