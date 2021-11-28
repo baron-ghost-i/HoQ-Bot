@@ -132,7 +132,7 @@ class Autoresponder(commands.Cog):
 
 	@commands.command(aliases = ("removeresp",))
 	@ownercheck()
-	async def removeresponse(self, ctx: commands.Context, trigger: str):
+	async def removeresponse(self, ctx: commands.Context, *, trigger: str):
 		id = self.id(ctx.guild.id)
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
