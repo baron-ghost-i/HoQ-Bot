@@ -59,7 +59,7 @@ def ownercheck():
 			return True
 		return commands.check(predicate)
 
-def guildid(self, id: int):
+def guildid(id: int):
 	if any([id == 850039242481991700, id == 808257138882641960, id == 839939906558361627, id == 786520972064587786]):
 		return 612234021388156938
 	return id
