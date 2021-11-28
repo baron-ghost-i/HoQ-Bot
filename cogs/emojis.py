@@ -3,7 +3,7 @@ import inspect
 import typing
 import datetime
 from discord.ext import commands
-from utils import paginatorview
+from utils.utils import PaginatorView
 
 class Emojis(commands.Cog):
 	def __init__(self, bot):
@@ -24,7 +24,7 @@ class Emojis(commands.Cog):
 			if len(emojistr) <= 4096:
 				await ctx.send(embed = discord.Embed(description = emojistr, timestamp = datetime.datetime.now()))
 			else:
-				view = paginatorview.View(input = emojistr)
+				view = PaginatorView(input = emojistr)
 				embed = discord.Embed(description = view.list[0], timestamp = datetime.datetime.now(datetime.timezone.utc))
 				embed.set_footer(text = f"Page 1 of {len(view.list)}")
 				await ctx.send(embed = embed, view = view)

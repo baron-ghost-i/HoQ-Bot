@@ -1,5 +1,6 @@
 import discord
 import json
+from utils.utils import guildid
 
 class Slashcommands:
     '''Compiles all slashcommands in a single class'''
@@ -13,11 +14,6 @@ class Slashcommands:
 			    self.data[i["name"]] = i["value"]
 	    except:
 		    pass
-			
-    def id(self, id: int):
-	    if any([id == 850039242481991700, id == 808257138882641960, id == 839939906558361627, id == 786520972064587786]):
-		    return 612234021388156938
-	    return id
 
     async def ping(self):
 	    await self.interaction.response.send_message(f"Ping: {round(self.bot.latency*1000)} ms")
@@ -34,7 +30,7 @@ class Slashcommands:
 	    with open("data/autoresponses.json") as fob:
 		    data = json.loads(fob.read())
 			
-	    id_ = self.id(self.interaction.guild_id)
+	    id_ = guildid(self.interaction.guild_id)
 	    self.data["trigger"] = self.data["trigger"].lower()
 	    wildcard = self.data.pop("wildcard")
 	    type1, type2 = "normal", "wildcard"

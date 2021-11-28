@@ -1,7 +1,10 @@
 import discord
 import datetime
+from discord.ext import commands
 
-class View(discord.ui.View):
+class PaginatorView(discord.ui.View):
+	'''Creates a paginator for large embeds'''
+
 	def __init__(self, input):
 		super().__init__(timeout = None)
 		self.input = input
@@ -44,3 +47,19 @@ class View(discord.ui.View):
 	async def end(self, button: discord.ui.Button, interaction: discord.Interaction):
 		self.stop()
 		await interaction.message.edit(view = None)
+
+def ownercheck():
+		async def predicate(ctx):
+			if ctx.guild is None:
+				raise commands.CheckFailure(message = "This command can be used on a guild only!")
+				return False
+			if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
+				raise commands.CheckFailure("You don't have the permission to use this command!")
+				return False
+			return True
+		return commands.check(predicate)
+
+def guildid(self, id: int):
+	if any([id == 850039242481991700, id == 808257138882641960, id == 839939906558361627, id == 786520972064587786]):
+		return 612234021388156938
+	return id

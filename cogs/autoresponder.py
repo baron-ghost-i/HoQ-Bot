@@ -4,35 +4,23 @@ import asyncio
 import re
 import datetime
 from discord.ext import commands
-from utils import paginatorview
+from utils.utils import (
+	guildid,
+	ownercheck,
+	PaginatorView
+	)
 
 class Autoresponder(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.nonepair = {"trigger": None, "response": None}
 
-	def id(self, id: int):
-		if any([id == 850039242481991700, id == 808257138882641960, id == 839939906558361627, id == 786520972064587786]):
-			return 612234021388156938
-		return id
-	
-	def ownercheck():
-		async def predicate(ctx):
-			if ctx.guild is None:
-				raise commands.CheckFailure(message = "This command can be used on a guild only!")
-				return False
-			if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
-				raise commands.CheckFailure("You don't have the permission to use this command!")
-				return False
-			return True
-		return commands.check(predicate)
-
 	@commands.Cog.listener()
 	async def on_message(self, ctx: discord.Message):
 		if ctx.channel.type == discord.ChannelType.private:
 			return
 			
-		id = self.id(ctx.guild.id)
+		id = guildid(ctx.guild.id)
 		flag1, flag2, message = False, False, ctx.content
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
@@ -193,7 +181,7 @@ class Autoresponder(commands.Cog):
 			try:
 				assert len(response) <= 4096
 			except AssertionError:
-				view = paginatorview.View(input = response)
+				view = PaginatorView(input = response)
 				embed = discord.Embed(description = view.list[0], timestamp = datetime.datetime.now())
 				embed.set_footer(text = f"Page 1 of {len(view.list)}")
 				await ctx.send(embed = embed, view = view)
