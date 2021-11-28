@@ -114,5 +114,5 @@ class Slashcommands:
 
 		wildcard = self.data.pop("wildcard")
 		view = discord.ui.View(timeout=60.0)
-		view.add_item(SelectMenu(gid = ID, wildcard = wildcard))
+		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user=self.interaction.user))
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
