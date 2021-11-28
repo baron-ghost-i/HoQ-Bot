@@ -23,6 +23,8 @@ class SelectMenu(discord.ui.Select):
 			if i["trigger"] == trigger:
 				data[str(self.id)][self._type].remove(i)
 				break
+		if data[str(self.id)][self._type] == []:
+			data[str(self.id)][self._type].append({"trigger": None, "response": None})
 
 		with open("data/autoresponses.json", "w") as fob:
 			data = json.dump(data, fob)
