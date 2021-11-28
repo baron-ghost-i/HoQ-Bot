@@ -16,6 +16,7 @@ class SelectMenu(discord.ui.Select):
 
 	async def callback(self, interaction: discord.Interaction):
 		trigger = interaction.data["values"][0]
+		nonepair = {"trigger": None, "response": None}
 		with open("data/autoresponses.json") as fob:
 			data = json.loads(fob.read())
 
@@ -24,7 +25,11 @@ class SelectMenu(discord.ui.Select):
 				data[str(self.id)][self._type].remove(i)
 				break
 		if data[str(self.id)][self._type] == []:
-			data[str(self.id)][self._type].append({"trigger": None, "response": None})
+			data[str(self.id)][self._type].append(nonepair)
+
+		if nonepair in data[str(self.id)]["normal"] and nonepair in data[str(self.id)]["wildcard"]:
+			data.pop(str(self.id))
+		
 
 		with open("data/autoresponses.json", "w") as fob:
 			data = json.dump(data, fob)
