@@ -83,8 +83,8 @@ class Slashcommands:
 		if not self.interaction.user.guild_permissions.administrator:
 			await self.interaction.response.send_message("You do not have the permission to use this command!", ephemeral = True)
 			return
-			
-		ID = self._id(self.interaction.guild_id)
+
+		ID = guildid(self.interaction.guild_id)
 		wildcard = self.data.pop("wildcard")
 		view = discord.ui.View(timeout=60.0)
 		view.add_item(SelectMenu(gid = ID, wildcard = wildcard))
