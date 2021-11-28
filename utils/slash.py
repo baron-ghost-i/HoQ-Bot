@@ -5,18 +5,26 @@ from utils.utils import guildid
 class SelectMenu(discord.ui.Select):
 	def __init__(self, gid: int, wildcard: bool):
 		opts = []
+		self.blankopt = discord.SelectOption(label = "None")
 		typedict = {True: "wildcard", False: "normal"}
 		self.id = gid
+		self.nonepair = {"trigger": None, "response": None}
 		self._type = typedict[wildcard]
 		with open("data/autoresponses.json") as fob:
 			data = json.loads(fob.read())[str(self.id)][self._type]
-		for i in data:
-			opts.append(discord.SelectOption(label = i["trigger"]))
+			if self.nonepair in data:
+				opts.append(self.blankopt)
+			else:
+				for i in data:
+					opts.append(discord.SelectOption(label = i["trigger"]))
+		
 		super().__init__(placeholder = "Select an option", options = opts)
 
 	async def callback(self, interaction: discord.Interaction):
+		if self.blankopt in self.options:
+			self.view.stop()
+			return
 		trigger = interaction.data["values"][0]
-		nonepair = {"trigger": None, "response": None}
 		with open("data/autoresponses.json") as fob:
 			data = json.loads(fob.read())
 
@@ -25,14 +33,13 @@ class SelectMenu(discord.ui.Select):
 				data[str(self.id)][self._type].remove(i)
 				break
 		if data[str(self.id)][self._type] == []:
-			data[str(self.id)][self._type].append(nonepair)
+			data[str(self.id)][self._type].append(self.nonepair)
 
-		if nonepair in data[str(self.id)]["normal"] and nonepair in data[str(self.id)]["wildcard"]:
+		if self.nonepair in data[str(self.id)]["normal"] and self.nonepair in data[str(self.id)]["wildcard"]:
 			data.pop(str(self.id))
-		
 
 		with open("data/autoresponses.json", "w") as fob:
-			data = json.dump(data, fob)
+			data = json.dump(data, fob, indent = 2)
 
 		await interaction.response.send_message("Trigger removed!")
 		self.view.stop()
@@ -90,8 +97,15 @@ class Slashcommands:
 		if not self.interaction.user.guild_permissions.administrator:
 			await self.interaction.response.send_message("You do not have the permission to use this command!", ephemeral = True)
 			return
-
+			
 		ID = guildid(self.interaction.guild_id)
+		with open("data/autoresponses.json") as fob:
+			data = json.loads(fob.read())
+
+		if str(ID) not in data:
+			await self.interaction.response.send_message("This guild does not have any trigger yet", ephemeral =  True)
+			return
+
 		wildcard = self.data.pop("wildcard")
 		view = discord.ui.View(timeout=60.0)
 		view.add_item(SelectMenu(gid = ID, wildcard = wildcard))
