@@ -2,30 +2,24 @@ import discord
 import json
 from utils.utils import guildid
 
+typedict = {True: "wildcard", False: "normal"}
+nonepair = {"trigger": None, "response": None}
+
 class SelectMenu(discord.ui.Select):
 	def __init__(self, gid: int, wildcard: bool, user):
 		opts = []
 		self._user = user
 		self.blankopt = discord.SelectOption(label = "None")
-		typedict = {True: "wildcard", False: "normal"}
 		self.id = gid
-		self.nonepair = {"trigger": None, "response": None}
 		self._type = typedict[wildcard]
 		with open("data/autoresponses.json") as fob:
 			data = json.loads(fob.read())[str(self.id)][self._type]
-			if self.nonepair in data:
-				opts.append(self.blankopt)
-			else:
-				for i in data:
-					opts.append(discord.SelectOption(label = i["trigger"]))
+			for i in data:
+				opts.append(discord.SelectOption(label = i["trigger"]))
 		
 		super().__init__(placeholder = "Select an option", options = opts)
 
 	async def callback(self, interaction: discord.Interaction):
-		if self.blankopt in self.options:
-			self.view.stop()
-			return
-
 		if interaction.user != self._user:
 			await interaction.response.send_message("You cannot use this select menu", ephemeral=True)
 			return
@@ -39,9 +33,9 @@ class SelectMenu(discord.ui.Select):
 				data[str(self.id)][self._type].remove(i)
 				break
 		if data[str(self.id)][self._type] == []:
-			data[str(self.id)][self._type].append(self.nonepair)
+			data[str(self.id)][self._type].append(nonepair)
 
-		if self.nonepair in data[str(self.id)]["normal"] and self.nonepair in data[str(self.id)]["wildcard"]:
+		if nonepair in data[str(self.id)]["normal"] and nonepair in data[str(self.id)]["wildcard"]:
 			data.pop(str(self.id))
 
 		with open("data/autoresponses.json", "w") as fob:
@@ -112,10 +106,15 @@ class Slashcommands:
 			data = json.loads(fob.read())
 
 		if str(ID) not in data:
-			await self.interaction.response.send_message("This guild does not have any trigger yet", ephemeral =  True)
+			await self.interaction.response.send_message("This guild does not have any trigger yet", ephemeral = True)
 			return
 
-		wildcard = self.data.pop("wildcard")
+		wildcard: bool = self.data.pop("wildcard")
+		
+		if nonepair in data[str(ID)][typedict[wildcard]]:
+			await self.interaction.response.send_message("No trigger available under selected category", ephemeral =  True)
+			return	
+		
 		view = discord.ui.View(timeout=60.0)
-		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user=self.interaction.user))
+		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user = self.interaction.user))
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
