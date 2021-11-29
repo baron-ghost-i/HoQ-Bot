@@ -68,8 +68,8 @@ class Slashcommands:
 			await self.interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
 			return
 			
-		if not self.interaction.user.guild_permissions.administrator:
-			await self.interaction.response.send_message("You do not have the permission to use this command", ephemeral = True)
+		if not (self.interaction.user.guild_permissions.administrator or self.interaction.user.id == 586088176037265408):
+			await self.interaction.response.send_message("You don't have the permission to use this command", ephemeral = True)
 			return
 
 		with open("data/autoresponses.json") as fob:
@@ -97,8 +97,8 @@ class Slashcommands:
 		await self.interaction.response.send_message("Autoresponse successfully added!")
 
 	async def removeresponse(self):
-		if not self.interaction.user.guild_permissions.administrator:
-			await self.interaction.response.send_message("You do not have the permission to use this command!", ephemeral = True)
+		if not (self.interaction.user.guild_permissions.administrator or self.interaction.user.id == 586088176037265408):
+			await self.interaction.response.send_message("You don't have the permission to use this command!", ephemeral = True)
 			return
 			
 		ID = guildid(self.interaction.guild_id)
