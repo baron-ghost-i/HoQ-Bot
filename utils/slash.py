@@ -48,6 +48,9 @@ class SelectMenu(discord.ui.Select):
 			data = json.dump(data, fob, indent = 2)
 
 		await interaction.response.send_message("Trigger removed!")
+		self.disabled = True
+		self.placeholder = "This select menu has already been used"
+		await interaction.message.edit(view = self.view)
 		self.view.stop()
 
 class Slashcommands:
