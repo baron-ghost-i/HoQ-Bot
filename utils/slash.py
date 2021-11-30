@@ -5,6 +5,17 @@ from utils.utils import guildid
 typedict = {True: "wildcard", False: "normal"}
 nonepair = {"trigger": None, "response": None}
 
+class CancelButton(discord.ui.Button):
+	def __init__(self):
+		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
+	
+	async def callback(self, interaction: discord.Interaction):
+		for i in self.view.children:
+			i.disabled = True
+			if isinstance(i, discord.ui.Select):
+				i.placeholder = "Command cancelled"
+		await interaction.message.edit(view = self.view)
+
 class SelectMenu(discord.ui.Select):
 	def __init__(self, gid: int, wildcard: bool, user):
 		opts = []
@@ -17,7 +28,7 @@ class SelectMenu(discord.ui.Select):
 			for i in data:
 				opts.append(discord.SelectOption(label = i["trigger"]))
 		
-		super().__init__(placeholder = "Select an option", options = opts)
+		super().__init__(placeholder = "Select an option", options = opts, row = 1)
 
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user != self._user:
@@ -42,7 +53,8 @@ class SelectMenu(discord.ui.Select):
 			data = json.dump(data, fob, indent = 2)
 
 		await interaction.response.send_message("Trigger removed!")
-		self.disabled = True
+		for i in self.view.children:
+			i.disabled = True
 		self.placeholder = "This select menu has already been used"
 		await interaction.message.edit(view = self.view)
 		self.view.stop()
@@ -117,4 +129,5 @@ class Slashcommands:
 		
 		view = discord.ui.View(timeout=60.0)
 		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user = self.interaction.user))
+		view.add_item(CancelButton())
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
