@@ -48,6 +48,17 @@ class PaginatorView(discord.ui.View):
 		self.stop()
 		await interaction.message.edit(view = None)
 
+class CancelButton(discord.ui.Button):
+	def __init__(self):
+		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
+	
+	async def callback(self, interaction: discord.Interaction):
+		for i in self.view.children:
+			i.disabled = True
+			if isinstance(i, discord.ui.Select):
+				i.placeholder = "Command cancelled"
+		await interaction.message.edit(view = self.view)
+
 def ownercheck():
 		async def predicate(ctx):
 			if ctx.guild is None:

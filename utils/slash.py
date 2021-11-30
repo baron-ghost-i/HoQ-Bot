@@ -1,20 +1,9 @@
 import discord
 import json
-from utils.utils import guildid
+from utils.utils import guildid, CancelButton
 
 typedict = {True: "wildcard", False: "normal"}
 nonepair = {"trigger": None, "response": None}
-
-class CancelButton(discord.ui.Button):
-	def __init__(self):
-		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
-	
-	async def callback(self, interaction: discord.Interaction):
-		for i in self.view.children:
-			i.disabled = True
-			if isinstance(i, discord.ui.Select):
-				i.placeholder = "Command cancelled"
-		await interaction.message.edit(view = self.view)
 
 class SelectMenu(discord.ui.Select):
 	def __init__(self, gid: int, wildcard: bool, user):
@@ -57,7 +46,6 @@ class SelectMenu(discord.ui.Select):
 			i.disabled = True
 		self.placeholder = "This select menu has already been used"
 		await interaction.message.edit(view = self.view)
-		self.view.stop()
 
 class Slashcommands:
 	'''Compiles all slashcommands in a single class'''
