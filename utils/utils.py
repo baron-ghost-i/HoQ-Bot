@@ -49,10 +49,13 @@ class PaginatorView(discord.ui.View):
 		await interaction.message.edit(view = None)
 
 class CancelButton(discord.ui.Button):
-	def __init__(self):
+	def __init__(self, user):
+		self.user = user
 		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
 	
 	async def callback(self, interaction: discord.Interaction):
+		if interaction.user != self.user:
+			return
 		for i in self.view.children:
 			i.disabled = True
 			if isinstance(i, discord.ui.Select):
