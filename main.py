@@ -27,7 +27,7 @@ class HoQBot(commands.Bot):
 		if interaction.type != discord.InteractionType.application_command:
 			return
 		try:
-			await getattr(Slashcommands, interaction.data["name"])(slash)
+			await slash.execute()
 		except AttributeError:
 			raise
 		

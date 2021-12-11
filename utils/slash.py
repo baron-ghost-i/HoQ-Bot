@@ -18,6 +18,7 @@ class SelectMenu(discord.ui.Select):
 				opts.append(discord.SelectOption(label = i["trigger"]))
 		
 		super().__init__(placeholder = "Select an option", options = opts, row = 1)
+		
 
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user != self._user:
@@ -59,6 +60,9 @@ class Slashcommands:
 				self.data[i["name"]] = i["value"]
 		except:
 			pass
+
+	async def execute(self):
+		await getattr(self, self.interaction.data["name"])()
 
 	async def ping(self):
 		await self.interaction.response.send_message(f"Ping: {round(self.bot.latency*1000)} ms")
