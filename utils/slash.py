@@ -9,7 +9,6 @@ class SelectMenu(discord.ui.Select):
 	def __init__(self, gid: int, wildcard: bool, user):
 		opts = []
 		self._user = user
-		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
 		self._type = typedict[wildcard]
 		with open("data/autoresponses.json") as fob:
