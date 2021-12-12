@@ -3,6 +3,7 @@ import discord
 import asyncio
 import aiohttp
 import json
+import pymongo
 from discord.ext import commands, tasks
 from utils.slash import Slashcommands
 
@@ -15,6 +16,7 @@ class HoQBot(commands.Bot):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.session = None
+		self.db = pymongo.MongoClient(os.getenv("mongourl"))["HoQ-Bot"]
 		for i in os.scandir(path = "cogs"):
 			if i.name.endswith(".py"):
 				self.load_extension(f"cogs.{i.name[:-3]}")

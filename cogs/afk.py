@@ -1,6 +1,6 @@
 import discord
-import json
 import datetime
+import asyncio
 from discord.ext import commands
 	
 class AFK(commands.Cog):
@@ -8,42 +8,33 @@ class AFK(commands.Cog):
 		self.bot = bot
 
 	@commands.command()
-	async def afk(self, ctx, *, args = None):
+	async def afk(self, ctx, *, reason = None):
 		'''Sets an AFK message for a user'''
-		if args == None:
-			afkmsg = "AFK"
+		await asyncio.sleep(0.05)
+		afkmsg = reason if reason != None else "AFK"
+		try:
+			assert self.bot.db["afk"].find_one({"_id": ctx.author.id}) == None
+		except AssertionError:
+			return
+		except:
+			raise
 		else:
-			afkmsg = args
-		await ctx.send(embed = discord.Embed(description = f"Set AFK: {afkmsg}", color = 0x00163E, timestamp = datetime.datetime.now()))
-		
-		afk = {"id": ctx.author.id, "msg": afkmsg}
-		with open("data/afk.json", "r") as afklist:
-			l1 = json.loads(afklist.read())
-			l2 = [i["id"] for i in l1]
-		if afk["id"] in l2:
-				l1[l2.index(afk["id"])]["msg"] = afk["msg"]
-		else:
-			l1.append(afk)
-		with open("data/afk.json", "w") as afklist:
-			afklist.write(json.dumps(l1, indent = 2))
+			afk = {"_id": ctx.author.id, "msg": afkmsg}
+			self.bot.db["afk"].insert_one(afk)
+			await ctx.send(embed = discord.Embed(description = f"Set AFK: {afkmsg}", color = 0x00163E, timestamp = datetime.datetime.now()))
 			
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		with open("data/afk.json", "r") as afklist:
-			l = json.loads(afklist.read())
-		keys = [i["id"] for i in l]
+		l = [i for i in self.bot.db["afk"].find()]
+		keys = [i["_id"] for i in l]
 		msgs = [i["msg"] for i in l]
 
 		if message.channel.type == discord.ChannelType.private:
 			return
-
+		
 		if message.author.id in keys:
 			await message.channel.send(embed = discord.Embed(description = f"{message.author.mention}'s AFK has been removed", color = 0x00DEFF), delete_after = 5)
-			l.pop(keys.index(message.author.id))
-			with open("data/afk.json", "w+") as afklist:
-				afklist.write(json.dumps(l, indent = 2))
-		else:
-			pass
+			self.bot.db['afk'].find_one_and_delete({"_id": message.author.id})
 			
 		for user in message.mentions:
 			if user == message.author:
