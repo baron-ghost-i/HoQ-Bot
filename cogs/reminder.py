@@ -1,13 +1,12 @@
-import discord, datetime, json
-from discord.ext import (
-commands,
-tasks
-)
+import discord
+import datetime
+from discord.ext import commands, tasks
 
 class Reminder(commands.Cog):
 	'''Creates a reminder command'''
 	def __init__(self, bot):
 		self.bot = bot
+		self.shortreminders = []
 		self.reminder.start()
 	
 	@commands.command(aliases = ("reminder", "remind", "rem"))
@@ -37,30 +36,30 @@ class Reminder(commands.Cog):
 		t = sec + 60*mins + 3600*hrs + 86420*days
 		tstr = f"{days} days, {hrs} hours, {mins} minutes and {sec} seconds"
 		reptime = round(ctx.message.created_at.timestamp() + t)
-		remdict = {"id": f"{ctx.author.id}", "time": f"{reptime}", "message": f"{st}", "delta": tstr}
-
-		with open("data/reminders.json", "r") as reminder:
-			l = json.loads(reminder.read())
-		l.append(remdict)
-
-		with open("data/reminders.json", "w") as reminder:
-			reminder.write(json.dumps(l, indent = 2))
+		remdict = {"id": ctx.author.id, "time": reptime, "message": f"{st}", "delta": tstr}
+		if t > 30:
+			self.bot.db["Reminders"].insert_one(remdict)
+		else:
+			self.shortreminders.append(remdict)
 
 	@tasks.loop(seconds = 1.0)
 	async def reminder(self):
 		time_ = round(datetime.datetime.now().timestamp())
-		with open("data/reminders.json", "r") as rem:
-			lis = json.loads(rem.read())
+		lis = [i for i in self.bot.db["Reminders"].find()]
 		timestamps = [i["time"] for i in lis]
-		if str(time_) in timestamps:
-			remdict = lis.pop(timestamps.index(str(time_)))
+		short = [i["time"] for i in self.shortreminders]
+		if time_ in short:
+			remdict = self.shortreminders.pop(short.index(time_))
+		if time_ in timestamps:
+			remdict = lis.pop(timestamps.index(time_))
+		try:
 			embd2 = discord.Embed(description = "Reminder: {}".format(remdict["message"]), color = 0xFFD700, timestamp = datetime.datetime.now(datetime.timezone.utc))
 			user = self.bot.get_user(int(remdict["id"]))
-			embd2.set_footer(text = "Set timer {} ago".format(remdict["delta"]))
+			embd2.set_footer(text = "Set reminder {} ago".format(remdict["delta"]))
 			await user.send(embed = embd2)
-			with open("data/reminders.json", "w+") as rem:
-				rem.write(json.dumps(lis, indent = 2))
-
+			self.bot.db["Reminders"].delete_one({"id": remdict["id"]})
+		except:
+			pass
 
 def setup(bot):
 	bot.add_cog(Reminder(bot))
