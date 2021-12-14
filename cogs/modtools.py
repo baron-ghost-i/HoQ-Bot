@@ -5,11 +5,8 @@ import datetime
 from discord.ext import commands
 
 class Moderation(commands.Cog):
-	'''Moderation tools'''
 	def __init__(self, bot):
 		self.bot = bot
-		with open("data/db.json", "r") as fob:
-			self.db = json.loads(fob.read())
 
 	def guild_check(ctx):
 		if ctx.guild.id == 612234021388156938:
@@ -18,12 +15,10 @@ class Moderation(commands.Cog):
 			raise commands.CheckFailure("Cannot use this command on this guild!")
 	
 	def guildcheck(ctx):
-		with open("data/db.json", "r") as foo:
-			db = json.loads(foo.read())
-		if str(ctx.guild.id) in db.keys():
+		check = ctx.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["default role"]
+		if check != None:
 			return True
-		else:
-			raise commands.CheckFailure(message = "Add a default role for this guild first, using `h!defaultrole [role]`")
+		raise commands.CheckFailure(message = "Add a default role for this guild first, using `h!defaultrole [role]`")
 
 	@commands.Cog.listener()
 	async def on_member_remove(self, member):
