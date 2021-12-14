@@ -65,28 +65,30 @@ class Autoresponder(commands.Cog):
 			flag1 = False
 			return
 		
-		if len(message.lower()) <= 2035:
-			if any([message.lower().startswith("i\'m "), message.lower().startswith("im "), message.lower().startswith("i am ")]):
-				for i in ["im ", "i am ", "i\'m "]:
-					match = re.search(i, message.lower())
-					if match is not None:
-						pos = match.end()
-						flag2 = True
-						break
+		dadmode = self.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["dadmode"]
+		if dadmode == True:
+			if len(message.lower()) <= 2035:
+				if any([message.lower().startswith("i\'m "), message.lower().startswith("im "), message.lower().startswith("i am ")]):
+					for i in ["im ", "i am ", "i\'m "]:
+						match = re.search(i, message.lower())
+						if match is not None:
+							pos = match.end()
+							flag2 = True
+							break
 			
-			elif any([" im " in message.lower(), " i am " in message.lower(), " i'm " in message.lower()]):
-				for i in [" im ", " i am ", " i\'m "]:
-					match = re.search(i, message.lower())
-					if match is not None:
-						pos = match.end()
-						flag2 = True
-						break
+				elif any([" im " in message.lower(), " i am " in message.lower(), " i'm " in message.lower()]):
+					for i in [" im ", " i am ", " i\'m "]:
+							match = re.search(i, message.lower())
+							if match is not None:
+								pos = match.end()
+								flag2 = True
+								break
 		
-		if flag2 == True:
-			reply = f"Hi {message[pos:]}, I'm dad!"
-			await ctx.reply(reply)
-			flag2 = False
-			return
+			if flag2 == True:
+				reply = f"Hi {message[pos:]}, I'm dad!"
+				await ctx.reply(reply)
+				flag2 = False
+				return
 
 	@commands.command(aliases = ("addresp",))
 	@ownercheck()

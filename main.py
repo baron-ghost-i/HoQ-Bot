@@ -44,6 +44,10 @@ class HoQBot(commands.Bot):
 		for i in self.guilds:
 			if str(i.id) not in data.keys():
 				data.update({str(i.id): {None: None}})
+			try:
+				self.db["Guild settings"].insert_one({"_id": i.id, "dadmode": False, "default role": None})
+			except:
+				pass
 
 		with open("data/roles.json", "w") as foo:
 			foo.write(json.dumps(data, indent = 2))

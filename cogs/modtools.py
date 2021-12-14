@@ -201,14 +201,6 @@ class Moderation(commands.Cog):
 			await ctx.channel.send(embed = embed)
 		else:
 			await ctx.channel.send("Member has no warning!")
-
-	@commands.command(aliases = ("default-role",))
-	@commands.has_permissions(administrator = True)
-	async def defaultrole(self, ctx: commands.Context, *, role: discord.Role):
-		self.db[str(ctx.guild.id)] = role.id
-		with open("data/db.json", "w") as foo:
-			foo.write(json.dumps(self.db, indent = 2))
-		await ctx.send(embed = discord.Embed(description = f"Set default role to {role.mention}", color = 0x00FF77))
 	
 	@commands.command()
 	@commands.has_permissions(manage_roles = True)
@@ -216,7 +208,7 @@ class Moderation(commands.Cog):
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
 		with open("data/roles.json", "r") as foo:
 			data = json.loads(foo.read())
-		roles = []
+		roles = member.roles
 		if str(member.id) in data[str(ctx.guild.id)].keys():
 			for i in data[str(ctx.guild.id)][str(member.id)]:
 				role = discord.utils.find(lambda role: role.id == i, ctx.guild.roles)
@@ -226,7 +218,7 @@ class Moderation(commands.Cog):
 				foo.write(json.dumps(data, indent = 2))
 			await member.edit(roles = roles, nick = name)
 		else:
-			id_ = int(self.db[str(ctx.guild.id)])
+			id_ = self.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["default role"]
 			role = discord.utils.get(ctx.guild.roles, id = id_)
 			roles.append(role)
 			if ctx.guild.id == 612234021388156938:
