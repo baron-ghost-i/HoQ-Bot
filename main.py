@@ -6,6 +6,7 @@ import json
 import pymongo
 from discord.ext import commands, tasks
 from utils.slash import Slashcommands
+from utils.utils import guildid
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
@@ -42,10 +43,11 @@ class HoQBot(commands.Bot):
 			data = json.loads(foo.read())
 
 		for i in self.guilds:
+			id = guildid(i.id)
 			if str(i.id) not in data.keys():
 				data.update({str(i.id): {None: None}})
 			try:
-				self.db["Guild settings"].insert_one({"_id": i.id, "dadmode": False, "default role": None, "autoresponder": False})
+				self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
 			except:
 				pass
 
