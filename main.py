@@ -111,7 +111,7 @@ async def reload(ctx, *, extension = None):
 			except:
 				await ctx.send("Extension not found")
 		else:
-			for i in ctx.bot.extensions:
+			for i in list(ctx.bot.extensions):
 				ctx.bot.reload_extension(name = i)
 		await ctx.send("Reloaded!")
 	except:
