@@ -3,6 +3,8 @@ from discord.ext import commands
 from typing import Union
 from utils.utils import guildid, admincheck
 
+_dict = {True: "enabled", False: "disabled"}
+
 class Configuration(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
@@ -10,9 +12,11 @@ class Configuration(commands.Cog):
 	@commands.group(invoke_without_command = True)
 	@admincheck()
 	async def dadmode(self, ctx):
-		await ctx.send('''Correct usage:
-		`h!dadmode enable`: Enables dad mode \(warning: can be frustrating\)
-		`h!dadmode disable`: Disables dad mode''')
+		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["autoresponder"]
+		await ctx.send(f'''Dad mode is currently *{_dict[state]}*.
+		More commands:
+		`h!autoresponder enable`: Enables dad mode
+		`h!autoresponder disable`: Disables dad mode''')
 	
 	@dadmode.command()
 	async def enable(self, ctx):
@@ -29,18 +33,20 @@ class Configuration(commands.Cog):
 	@commands.group(invoke_without_command = True)
 	@admincheck()
 	async def autoresponder(self, ctx):
-		await ctx.send('''Correct usage:
+		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["autoresponder"]
+		await ctx.send(f'''Autoresponder is currently *{_dict[state]}*.
+		More commands:
 		`h!autoresponder enable`: Enables the autoresponder
 		`h!autoresponder disable`: Disables the autoresponder''')
 
-	@autoresponder.command()
-	async def enable(self, ctx):
+	@autoresponder.command(aliases = ("enable",))
+	async def _enable(self, ctx):
 		id = guildid(ctx.guild.id)
 		self.bot.db['Guild settings'].update_one({"_id": id}, {"$set": {"autoresponder": True}})
 		await ctx.send("Autoresponder enabled!")
 
-	@autoresponder.command()
-	async def disable(self, ctx):
+	@autoresponder.command(aliases = ("disable",))
+	async def _disable(self, ctx):
 		id = guildid(ctx.guild.id)
 		self.bot.db['Guild settings'].update_one({"_id": id}, {"$set": {"autoresponder": False}})
 		await ctx.send("Autoresponder disabled!")
