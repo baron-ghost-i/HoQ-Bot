@@ -21,8 +21,6 @@ class MessageSnipe(commands.Cog):
 		await asyncio.sleep(90.0)
 		if id in self.snipelist.keys() and self.snipelist[id] == message:
 			self.snipelist.pop(id)
-
-			
 		
 	@commands.Cog.listener()
 	async def on_message_edit(self, before, after):
