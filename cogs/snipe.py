@@ -42,7 +42,6 @@ class MessageSnipe(commands.Cog):
 			msg = self.snipelist[ctx.channel.id]
 			embed = discord.Embed(description = msg.content, color = 0x00FF77, timestamp = msg.created_at.timestamp())
 			embed.set_author(name = msg.author, icon_url = msg.author.avatar.url)
-			embed.set_footer(text = f"Requested by {ctx.author}")
 			await ctx.send(embed = embed)
 		else:
 			await ctx.send("There is nothing to snipe!")
