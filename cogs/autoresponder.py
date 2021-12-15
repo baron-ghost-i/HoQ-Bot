@@ -14,16 +14,14 @@ class Autoresponder(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.nonepair = {"trigger": None, "response": None}
+		self.checklist = [i for i in self.bot.db["Guild settings"].find({"autoresponder": True})]
 
 	@commands.Cog.listener()
 	async def on_message(self, ctx: discord.Message):
 		if ctx.channel.type == discord.ChannelType.private:
 			return
-			
 		id = guildid(ctx.guild.id)
-
-		autoresponder = self.bot.db["Guild settings"].find_one({"_id": id})["autoresponder"]
-		if not autoresponder:
+		if id not in self.checklist:
 			return
 
 		flag1, flag2, message = False, False, ctx.content
