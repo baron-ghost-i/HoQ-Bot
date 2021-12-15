@@ -62,14 +62,13 @@ class CancelButton(discord.ui.Button):
 				i.placeholder = "Command cancelled"
 		await interaction.message.edit(view = self.view)
 
-def ownercheck():
+def admincheck():
 		async def predicate(ctx):
 			if ctx.guild is None:
 				raise commands.CheckFailure(message = "This command can be used on a guild only!")
 				return False
 			if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
 				raise commands.CheckFailure("You don't have the permission to use this command!")
-				return False
 			return True
 		return commands.check(predicate)
 
