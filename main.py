@@ -45,7 +45,7 @@ class HoQBot(commands.Bot):
 			if str(i.id) not in data.keys():
 				data.update({str(i.id): {None: None}})
 			try:
-				self.db["Guild settings"].insert_one({"_id": i.id, "dadmode": False, "default role": None})
+				self.db["Guild settings"].insert_one({"_id": i.id, "dadmode": False, "default role": None, "autoresponder": False})
 			except:
 				pass
 

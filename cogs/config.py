@@ -26,6 +26,25 @@ class Configuration(commands.Cog):
 		self.bot.db["Guild settings"].update_one({"_id": id}, {"$set": {"dadmode": False}})
 		await ctx.send("Disabled dad mode!")
 
+	@commands.group(invoke_without_command = True)
+	@admincheck()
+	async def autoresponder(self, ctx):
+		await ctx.send('''Correct usage:
+		`h!autoresponder enable`: Enables the autoresponder
+		`h!autoresponder disable`: Disables the autoresponder''')
+
+	@autoresponder.command()
+	async def enable(self, ctx):
+		id = guildid(ctx.guild.id)
+		self.bot.db['Guild settings'].update_one({"_id": id}, {"$set": {"autoresponder": True}})
+		await ctx.send("Autoresponder enabled!")
+
+	@autoresponder.command()
+	async def disable(self, ctx):
+		id = guildid(ctx.guild.id)
+		self.bot.db['Guild settings'].update_one({"_id": id}, {"$set": {"autoresponder": False}})
+		await ctx.send("Autoresponder disabled!")
+
 	@commands.command()
 	@admincheck()
 	async def defaultrole(self, ctx, role: Union[discord.Role, int, str]):

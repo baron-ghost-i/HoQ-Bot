@@ -21,6 +21,11 @@ class Autoresponder(commands.Cog):
 			return
 			
 		id = guildid(ctx.guild.id)
+
+		autoresponder = self.bot.db["Guild settings"].find_one({"_id": id})["autoresponder"]
+		if not autoresponder:
+			return
+
 		flag1, flag2, message = False, False, ctx.content
 		with open("data/autoresponses.json", "r") as foo:
 			content = json.loads(foo.read())
