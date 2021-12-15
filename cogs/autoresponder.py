@@ -6,7 +6,7 @@ import datetime
 from discord.ext import commands
 from utils.utils import (
 	guildid,
-	ownercheck,
+	admincheck,
 	PaginatorView
 	)
 
@@ -91,7 +91,7 @@ class Autoresponder(commands.Cog):
 				return
 
 	@commands.command(aliases = ("addresp",))
-	@ownercheck()
+	@admincheck()
 	async def addresponse(self, ctx: commands.Context, trigger, response, wildcard: str = None):
 		trigger = trigger.lower()
 		if any(["__" in response, "lambda" in response]):
@@ -121,7 +121,7 @@ class Autoresponder(commands.Cog):
 		await ctx.send("Added response!")
 
 	@commands.command(aliases = ("removeresp",))
-	@ownercheck()
+	@admincheck()
 	async def removeresponse(self, ctx: commands.Context, *, trigger: str):
 		id = guildid(ctx.guild.id)
 		with open("data/autoresponses.json", "r") as foo:
