@@ -14,14 +14,16 @@ class Autoresponder(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.nonepair = {"trigger": None, "response": None}
-		self.checklist = [i for i in self.bot.db["Guild settings"].find({"autoresponder": True})]
 
 	@commands.Cog.listener()
 	async def on_message(self, ctx: discord.Message):
+		checklist = [i["_id"] for i in self.bot.db["Guild settings"].find({"autoresponder": True})]
+		checklist2 = [i["_id"] for i in self.bot.db["Guild settings"].find({"dadmode": True})]
+		
 		if ctx.channel.type == discord.ChannelType.private:
 			return
 		id = guildid(ctx.guild.id)
-		if id not in self.checklist:
+		if id not in checklist:
 			return
 
 		flag1, flag2, message = False, False, ctx.content
@@ -68,8 +70,7 @@ class Autoresponder(commands.Cog):
 			flag1 = False
 			return
 		
-		dadmode = self.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["dadmode"]
-		if dadmode == True:
+		if id in checklist2:
 			if len(message.lower()) <= 2035:
 				if any([message.lower().startswith("i\'m "), message.lower().startswith("im "), message.lower().startswith("i am ")]):
 					for i in ["im ", "i am ", "i\'m "]:
