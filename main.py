@@ -53,7 +53,21 @@ class HoQBot(commands.Bot):
 
 		with open("data/roles.json", "w") as foo:
 			foo.write(json.dumps(data, indent = 2))
-	
+
+	async def on_guild_join(self, guild):
+		id = guildid(guild.id)
+		try:
+			self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
+		except:
+			pass
+
+	async def on_guild_remove(self, guild):
+		id = guildid(guild.id)
+		try:
+			self.db["Guild settings"].delete_one({"_id": id})
+		except:
+			pass
+
 	async def on_command_error(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.reply(embed = discord.Embed(description = f"Missing argument: {error.param.name}", color = discord.Color.red()))

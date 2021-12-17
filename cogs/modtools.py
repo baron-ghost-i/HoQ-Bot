@@ -203,8 +203,8 @@ class Moderation(commands.Cog):
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
 		with open("data/roles.json", "r") as foo:
 			data = json.loads(foo.read())
-		roles = member.roles
-		if str(member.id) in data[str(ctx.guild.id)].keys():
+		roles = []
+		if str(member.id) in data[str(ctx.guild.id)]:
 			for i in data[str(ctx.guild.id)][str(member.id)]:
 				role = discord.utils.find(lambda role: role.id == i, ctx.guild.roles)
 				roles.append(role)
@@ -216,9 +216,6 @@ class Moderation(commands.Cog):
 			id_ = self.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["default role"]
 			role = discord.utils.get(ctx.guild.roles, id = id_)
 			roles.append(role)
-			if ctx.guild.id == 612234021388156938:
-				levelrole = discord.utils.find(lambda role: role.id == 635031667278348289, ctx.guild.roles)
-				roles.append(levelrole)
 			await member.edit(roles = roles, nick = name)
 		await ctx.send("Verified!")
 
