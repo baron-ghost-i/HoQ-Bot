@@ -1,5 +1,5 @@
 aiohttp
-git+https://github.com/Rapptz/discord.py@master#egg=discord.py
+git+https://github.com/baron-ghost-i/discord.py@master#egg=discord.py
 youtube-dl
 pynacl
 opuslib
