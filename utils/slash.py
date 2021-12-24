@@ -1,5 +1,6 @@
 import discord
 import json
+import datetime
 from utils.utils import guildid, CancelButton
 
 typedict = {True: "wildcard", False: "normal"}
@@ -122,3 +123,29 @@ class Slashcommands:
 		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user = self.interaction.user))
 		view.add_item(CancelButton(self.interaction.user))
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
+
+	async def mute(self):
+		if not self.interaction.user.guild_permissions.moderate_members:
+			await self.interaction.response.send_message('You do not have the permission to use this command', ephemeral = True)
+			return
+
+		member: discord.Member = discord.utils.find(lambda m: str(m.id) == self.data['member'], self.interaction.guild.members)
+		if member.guild_permissions.administrator:
+			await self.interaction.response.send_message('Cannot mute this member!', ephemeral = True)
+			return
+			
+		reason = self.data.get('reason')
+		d, h, m, s = self.data.get('days', 0), self.data.get('hours', 0), self.data.get('minutes', 0), self.data.get('seconds', 0)
+		t = s+(60*m)+(60*60*h)+(24*60*60*d)
+		
+		if t > 2419200:
+			await self.interaction.response.send_message("Timeout exceeds maximum time limit of 28 days", ephemeral = True)
+			return
+
+		if t == 0:
+			timeout = None
+		else:
+			timeout = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+t)
+
+		await member.edit(timeout = timeout, reason = reason)
+		await self.interaction.response.send_message("Member successfully {}! Reason: {}".format("muted" if timeout != None else "unmuted", reason))
