@@ -12,7 +12,7 @@ class Configuration(commands.Cog):
 	@commands.group(invoke_without_command = True)
 	@admincheck()
 	async def dadmode(self, ctx):
-		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["autoresponder"]
+		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["dadmode"]
 		await ctx.send(f'''Dad mode is currently *{_dict[state]}*.
 		More commands:
 		`h!autoresponder enable`: Enables dad mode
@@ -54,13 +54,14 @@ class Configuration(commands.Cog):
 	@commands.command()
 	@admincheck()
 	async def defaultrole(self, ctx, role: Union[discord.Role, int, str]):
+		if ctx.channel.type == discord.ChannelType.private:
+			pass
 		id = guildid(ctx.guild.id)
 		if isinstance(role, discord.Role):
 			roleid = role.id
 		elif isinstance(role, int):
 			try:
-				role = discord.utils.find(lambda r: r.name == role, ctx.guild.roles)
-				assert role != None
+				assert discord.utils.find(lambda r: r.id == role, ctx.guild.roles) != None
 			except AssertionError:
 				await ctx.send("Could not find the role!")
 				return
