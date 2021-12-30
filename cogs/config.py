@@ -13,8 +13,8 @@ class Configuration(commands.Cog):
 	@admincheck()
 	async def dadmode(self, ctx):
 		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["dadmode"]
-		await ctx.send(f'''Dad mode is currently *{_dict[state]}*.
-		More commands:
+		await ctx.send(f'''Dad mode is currently **{_dict[state]}**.
+More commands:
 `h!autoresponder enable`: Enables dad mode
 `h!autoresponder disable`: Disables dad mode''')
 	
@@ -34,7 +34,7 @@ class Configuration(commands.Cog):
 	@admincheck()
 	async def autoresponder(self, ctx):
 		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["autoresponder"]
-		await ctx.send(f'''Autoresponder is currently *{_dict[state]}*.
+		await ctx.send(f'''Autoresponder is currently **{_dict[state]}**.
 More commands:
 `h!autoresponder enable`: Enables the autoresponder
 `h!autoresponder disable`: Disables the autoresponder''')
