@@ -15,6 +15,8 @@ class Moderation(commands.Cog):
 			raise commands.CheckFailure("Cannot use this command on this guild!")
 	
 	def guildcheck(ctx):
+		if ctx.guild.id in (850039242481991700, 808257138882641960, 839939906558361627, 786520972064587786):
+			return False
 		check = ctx.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["default role"]
 		if check != None:
 			return True
