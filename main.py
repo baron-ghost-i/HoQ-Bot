@@ -26,13 +26,13 @@ class HoQBot(commands.Bot):
 		self.session = aiohttp.ClientSession()
 
 	async def on_interaction(self, interaction: discord.Interaction):
-		slash = Slashcommands(self, interaction)
 		if interaction.type != discord.InteractionType.application_command:
 			return
+		slash = Slashcommands(self, interaction)
 		try:
 			await slash.execute()
-		except AttributeError:
-			raise
+		except Exception as e:
+			raise e
 		
 	async def on_ready(self):
 		c = self.get_channel(850039242481991703)
