@@ -6,6 +6,7 @@ import json
 import re
 import datetime
 from discord.ext import commands
+from utils.utils import ownercheck
 		
 class GoogleView(discord.ui.View):
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
@@ -194,13 +195,13 @@ class Utils(commands.Cog):
 class Math(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.math = {"union": "∪", "intersection": "∩", "and": "∧", "or": "∨", "forall": "∀", "exist": "∃", "nexist": "∄", "empty": "∅", "in": "∈", "notin": "∉", "prod" : "∏", "sum": "∑", "sqrt": "√", "sqrt[3]": "∛", "sqrt[4]":	"∜", "compose" : "∘", "infty": "∞", "propto": "∝", "angle": "∠", "nmid": "∤", "nparallel": "∦", "int": "∫", "iint": "∬", "iiint": "∭", "oint": "∮", "sint": "∯", "vint": "∰", "therefore": "∴", "since": "∵", "cong": "≅", "ncong": "≇", "approx": "≈", "neq": "≠", "equiv": "≡", "leq": "≤", "geq": "≥", "psub": "⊂", "psuper": "⊃", "nsub": "⊄", "nsuper": "⊅", "sub": "⊆", "super": "	⊇", "Delta": "∆", "nabla": "∇", "cross": "×", "div": "÷", "cdot": "·", "ddots": "⋰", "vdots": "⋮", "cdots": "⋯", "pm":"±", "mp": "∓", "not": "¬", "del": "∂", "alpha": "α", "beta":"β", "gamma":"γ", "delta":"δ", "epsilon":"ε", "phi":"φ", "eta":"η", "iota":"", "kappa":"κ", "lambda":"λ", "mu": "μ", "nu": "ν", "pi": "π", "rho":"ρ", "sigma": "σ", "tau":"τ", "omega":"ω", "chi":"χ", "psi": "ψ", "theta": "θ", "Omega": "Ω", "implies": "⇒", "nimplies": "⇏", "iff": "⇔", "niff": "⇎", "equib": "⇌", "larrow": "⭠", "rarrow": "⭢", "uarrow": "↑", "darrow": "↓", "anticlock": "↺", "clock": "↻", "_0": "₀", "_1": "₁", "_2": "₂", "_3": "₃", "_4": "₄", "_5": "₅", "_6": "₆", "_7": "₇", "_8": "₈", "_9": "₉", "_+": "₊", "_-": "₋", "_(": "₍", "_)": "₎", "^0": "⁰", "^1": "¹", "^2": "²", "^3": "³", "^4": "⁴", "^5": "⁵", "^6": "⁶", "^7": "⁷", "^8": "⁸", "^9": "⁹", "^+": "⁺", "^-": "⁻", "^(": "⁽", "^)": "⁾"}
 
 	@commands.group(invoke_without_command = True)
 	async def math(self, ctx):
 		await ctx.channel.send(embed = discord.Embed(description = '''Proper usage:
 `h!math convert`: Converts characters with foreslash to respective math symbols
 `h!math list`: Retuns the available list of symbols and their names
+`h!math create`: Adds a new symbol for the bot to access													 
 		''', color = 0x1DACD6, timestamp = datetime.datetime.now(datetime.timezone.utc)))
 
 	@math.command()
@@ -208,24 +209,35 @@ class Math(commands.Cog):
 		'''Converts all possible mathematical symbol names into Unicode-supported symbols'''
 		args = re.split(r"\s|\\", input)
 		for i in args:
-				if i in self.math.keys():
-					args[args.index(i)] = self.math[i]
-				else:
-					pass
+			symbol = self.bot.db['Math'].find_one({'name': i})
+			if symbol != None:
+				args[args.index(i)] = symbol['symbol']
+			else:
+				pass
 		for i in args:
 			if i == "":
 				args.pop(args.index(i))
 		rep = "".join(args)
 		await ctx.channel.send(rep)
 
-	@math.command()
-	async def list(self, ctx):
+	@math.command(aliases = ("list",))
+	async def show(self, ctx):
 		'''Returns a list of convertible symbols available'''
 		l = []
-		for i in self.math.keys():
-			l.append(f"\\{i}: {self.math[i]}")
+		for i in self.bot.db['Math'].find():
+			l.append(f"\\{i['name']}: {i['symbol']}")
 		resp = "\n".join(l)
 		await ctx.channel.send(embed = discord.Embed(title = "List of available symbols", description = resp, color = 0x00FF99, timestamp = datetime.datetime.now(datetime.timezone.utc)))
+
+	@math.command(aliases = ('add',))
+	@commands.check(ownercheck)
+	async def create(self, ctx, name, symbol):
+		'''Adds a new symbol to the list of available symbols'''
+		try:
+			self.bot.db['Math'].insert_one({'name': name, 'symbol': symbol})
+			await ctx.send('Symbol added successfully')
+		except:
+			raise
 
 class Info(commands.Cog):
 	def __init__(self, bot):

@@ -40,7 +40,7 @@ class MessageSnipe(commands.Cog):
 	async def snipe(self, ctx):
 		if ctx.channel.id in self.snipelist.keys():
 			msg = self.snipelist[ctx.channel.id]
-			embed = discord.Embed(description = msg.content, color = 0x00FF77, timestamp = msg.created_at.timestamp())
+			embed = discord.Embed(description = msg.content, color = 0x00FF77, timestamp = msg.created_at)
 			embed.set_author(name = msg.author, icon_url = msg.author.avatar.url)
 			await ctx.send(embed = embed)
 		else:
@@ -50,7 +50,7 @@ class MessageSnipe(commands.Cog):
 	async def editsnipe(self, ctx):
 		if ctx.channel.id in self.editsnipelist.keys():
 			before, after = self.editsnipelist[ctx.channel.id]
-			embed = discord.Embed(color = 0x00FF77, timestamp = before.edited_at.timestamp())
+			embed = discord.Embed(color = 0x00FF77, timestamp = before.edited_at)
 			embed.add_field(name = "Before", value = before)
 			embed.add_field(name = "After", value = after)
 			embed.set_author(name = before.author, icon_url = before.author.avatar.url)
