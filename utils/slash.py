@@ -1,24 +1,35 @@
 import discord
-import json
 import datetime
-from utils.utils import guildid, CancelButton
+from utils.utils import guildid
 
-typedict = {True: "wildcard", False: "normal"}
-nonepair = {"trigger": None, "response": None}
+class CancelButton(discord.ui.Button):
+	def __init__(self, user):
+		self.user = user
+		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
+	
+	async def callback(self, interaction: discord.Interaction):
+		if interaction.user != self.user:
+			return
+		for i in self.view.children:
+			i.disabled = True
+			if isinstance(i, discord.ui.Select):
+				i.placeholder = "Command cancelled"
+		await interaction.message.edit(view = self.view)
 
 class SelectMenu(discord.ui.Select):
-	def __init__(self, gid: int, wildcard: bool, user):
+	def __init__(self, bot, gid: int, wildcard: bool, user):
 		opts = []
+		self.bot = bot
 		self._user = user
+		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
-		self._type = typedict[wildcard]
-		with open("data/autoresponses.json") as fob:
-			data = json.loads(fob.read())[str(self.id)][self._type]
-			for i in data:
-				opts.append(discord.SelectOption(label = i["trigger"]))
+		self._type = wildcard
+		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'wildcard': self._type})]
 		
-		super().__init__(placeholder = "Select an option", options = opts, row = 1)
+		for i in data:
+			opts.append(discord.SelectOption(label = i["trigger"]))
 		
+		super().__init__(placeholder = "Select an option", options = opts)
 
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user != self._user:
@@ -26,31 +37,22 @@ class SelectMenu(discord.ui.Select):
 			return
 
 		trigger = interaction.data["values"][0]
-		with open("data/autoresponses.json") as fob:
-			data = json.loads(fob.read())
 
-		for i in data[str(self.id)][self._type]:
-			if i["trigger"] == trigger:
-				data[str(self.id)][self._type].remove(i)
-				break
-		if data[str(self.id)][self._type] == []:
-			data[str(self.id)][self._type].append(nonepair)
-
-		if nonepair in data[str(self.id)]["normal"] and nonepair in data[str(self.id)]["wildcard"]:
-			data.pop(str(self.id))
-
-		with open("data/autoresponses.json", "w") as fob:
-			data = json.dump(data, fob, indent = 2)
+		self.bot.db['autoresponder'].find_one_and_delete({
+			'guild': self.id,
+			'trigger': trigger
+		})
 
 		await interaction.response.send_message("Trigger removed!")
 		for i in self.view.children:
 			i.disabled = True
 		self.placeholder = "This select menu has already been used"
 		await interaction.message.edit(view = self.view)
+		self.view.stop()
 
+
+		
 class Slashcommands:
-	'''Compiles all slashcommands in a single class'''
-	
 	def __init__(self, bot, interaction):
 		self.bot = bot
 		self.interaction: discord.Interaction = interaction
@@ -61,9 +63,6 @@ class Slashcommands:
 		except:
 			pass
 
-	async def execute(self):
-		await getattr(self, self.interaction.data["name"])()
-
 	async def ping(self):
 		await self.interaction.response.send_message(f"Ping: {round(self.bot.latency*1000)} ms")
 
@@ -72,56 +71,37 @@ class Slashcommands:
 			await self.interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
 			return
 			
-		if not (self.interaction.user.guild_permissions.administrator or self.interaction.user.id == 586088176037265408):
-			await self.interaction.response.send_message("You don't have the permission to use this command", ephemeral = True)
+		if not self.interaction.user.guild_permissions.manage_messages:
+			await self.interaction.response.send_message("You do not have the permission to use this command", ephemeral = True)
 			return
-
-		with open("data/autoresponses.json") as fob:
-			data = json.loads(fob.read())
 			
 		id_ = guildid(self.interaction.guild_id)
-		self.data["trigger"] = self.data["trigger"].lower()
-		wildcard = self.data.pop("wildcard")
-		type1, type2 = "normal", "wildcard"
-		nonepair = {"trigger": None, "response": None}
-		
-		if wildcard:
-			type1, type2 = type2, type1
+		wildcard = self.data.pop("wilcard") #I know there's a typo
 
-		if str(id_) not in data:
-			data[str(id_)] = {type1: [self.data], type2: [nonepair]}
-		else:
-			data[str(id_)][type1].append(self.data)
-		
-		if nonepair in data[str(id_)][type1] and len(data[str(id_)][type1]) > 1:
-			data[str(id_)][type1].remove(nonepair)
-		
-		with open("data/autoresponses.json", "w") as fob:
-			json.dump(data, fob, indent = 2)
+		self.bot.db['autoresponder'].insert_one({
+			'guild': id_,
+			'trigger': self.data['trigger'],
+			'response': self.data['response'],
+			'wildcard': wildcard
+		})
+
 		await self.interaction.response.send_message("Autoresponse successfully added!")
 
 	async def removeresponse(self):
-		if not (self.interaction.user.guild_permissions.administrator or self.interaction.user.id == 586088176037265408):
-			await self.interaction.response.send_message("You don't have the permission to use this command!", ephemeral = True)
+		if not self.interaction.user.guild_permissions.administrator:
+			await self.interaction.response.send_message("You do not have the permission to use this command!", ephemeral = True)
 			return
 			
 		ID = guildid(self.interaction.guild_id)
-		with open("data/autoresponses.json") as fob:
-			data = json.loads(fob.read())
-
-		if str(ID) not in data:
-			await self.interaction.response.send_message("This guild does not have any trigger yet", ephemeral = True)
-			return
-
 		wildcard: bool = self.data.pop("wildcard")
 		
-		if nonepair in data[str(ID)][typedict[wildcard]]:
-			await self.interaction.response.send_message("No trigger available under selected category", ephemeral =  True)
+		if self.bot.db['autoresponder'].count_documents({'guild': ID, 'wildcard': wildcard}) == 0:
+			await self.interaction.response.send_message("No trigger available under this category", ephemeral =  True)
 			return	
 		
 		view = discord.ui.View(timeout=60.0)
-		view.add_item(SelectMenu(gid = ID, wildcard = wildcard, user = self.interaction.user))
-		view.add_item(CancelButton(self.interaction.user))
+		view.add_item(SelectMenu(bot = self.bot, gid = ID, wildcard = wildcard, user=self.interaction.user))
+		view.add_item(CancelButton(user = self.interaction.user))
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
 
 	async def mute(self):

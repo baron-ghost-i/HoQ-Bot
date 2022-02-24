@@ -23,6 +23,10 @@ class Autoresponder(commands.Cog):
 	@commands.guild_only()
 	@admincheck()
 	async def addresponse(self, ctx, trigger, response, wildcard = None):
+		if any(["__" in response, "lambda" in response]):
+			await ctx.send("Cannot add that autoresponse")
+			return
+
 		id = guildid(ctx.guild.id)
 		if wildcard == None or wildcard.lower() != "wildcard":
 			wildcard = False
@@ -85,11 +89,14 @@ class Autoresponder(commands.Cog):
 				
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		id = guildid(message.guild.id)
 		
+		if message.guild == None:
+			return
+			
+		id = guildid(message.guild.id)
 		check = self.bot.db['Guild settings'].find_one({'_id': id})['autoresponder']
 		
-		if (not check) or (message.guild == None) or message.author.bot:
+		if (not check) or message.author.bot:
 			return
 			
 		dcheck = self.bot.db['Guild settings'].find_one({'_id': id})['dadmode']
