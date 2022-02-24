@@ -50,18 +50,21 @@ class SelectMenu(discord.ui.Select):
 		await interaction.message.edit(view = self.view)
 		self.view.stop()
 
-
 		
 class Slashcommands:
 	def __init__(self, bot, interaction):
 		self.bot = bot
 		self.interaction: discord.Interaction = interaction
 		self.data: dict = {}
+		self.command = interaction.data.get('name')
 		try:
 			for i in self.interaction.data["options"]:
 				self.data[i["name"]] = i["value"]
 		except:
 			pass
+
+	async def execute(self):
+		await getattr(self, self.command)()
 
 	async def ping(self):
 		await self.interaction.response.send_message(f"Ping: {round(self.bot.latency*1000)} ms")
@@ -76,7 +79,7 @@ class Slashcommands:
 			return
 			
 		id_ = guildid(self.interaction.guild_id)
-		wildcard = self.data.pop("wilcard") #I know there's a typo
+		wildcard = self.data.pop("wildcard")
 
 		self.bot.db['autoresponder'].insert_one({
 			'guild': id_,
