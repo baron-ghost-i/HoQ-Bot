@@ -108,15 +108,6 @@ bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H.
 def isme(ctx):
 		return ctx.author.id == 586088176037265408
 
-@tasks.loop(hours = 24.0)
-async def printer(bot):
-	filelist = []
-	for i in os.scandir(path = "data"):
-		with open(f"data/{i.name}", "rb") as fob:
-			filelist.append(discord.File(filename = i.name, fp = fob))
-	c = await bot.fetch_channel(886950779305492570)
-	await c.send(files = filelist)
-
 @bot.command()
 @commands.check(isme)
 async def reload(ctx, *, extension = None):
@@ -133,20 +124,10 @@ async def reload(ctx, *, extension = None):
 	except:
 		raise
 
-@bot.command(aliases = ("files", "filelist"))
-@commands.check(isme)
-async def getfiles(ctx):
-	filelist = []
-	for i in os.scandir(path = "data"):
-		with open(f"data/{i.name}", "rb") as fob:
-			filelist.append(discord.File(filename = i.name, fp = fob))
-	await ctx.send(files = filelist)
-
 @bot.command()
 @commands.check(isme)
 async def guilds(ctx: commands.Context):
 	guilds = [i.name for i in ctx.bot.guilds]
 	await ctx.send("\n".join(guilds))
-	
-printer.start(bot)
+
 bot.run(token)
