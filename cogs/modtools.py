@@ -133,7 +133,7 @@ class Moderation(commands.Cog):
 	@commands.has_permissions(manage_roles = True)
 	@commands.check(guildcheck)
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
-		data = self.bot.db['roles'].find_one({'user': member.id})
+		data = self.bot.db['roles'].find_one_and_delete({'user': member.id})
 		roles = []
 		if data != None:
 			for i in data['roles']:
