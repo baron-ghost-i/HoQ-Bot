@@ -2,9 +2,8 @@ import os
 import discord
 import asyncio
 import aiohttp
-import json
 import pymongo
-from discord.ext import commands, tasks
+from discord.ext import commands
 from utils.slash import Slashcommands
 from utils.utils import guildid
 
@@ -26,13 +25,13 @@ class HoQBot(commands.Bot):
 		self.session = aiohttp.ClientSession()
 
 	async def on_interaction(self, interaction: discord.Interaction):
+		slash = Slashcommands(self, interaction)
 		if interaction.type != discord.InteractionType.application_command:
 			return
-		slash = Slashcommands(self, interaction)
 		try:
 			await slash.execute()
-		except Exception as e:
-			raise e
+		except AttributeError:
+			raise
 		
 	async def on_ready(self):
 		c = self.get_channel(850039242481991703)
@@ -41,9 +40,11 @@ class HoQBot(commands.Bot):
 
 		for i in self.guilds:
 			try:
-				self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
+				id = guildid(i.id)
+				assert self.db['Guild settings'].find_one({'_id': id}) != None
 			except:
-				pass
+				self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
+
 
 	async def on_guild_join(self, guild):
 		id = guildid(guild.id)
