@@ -23,13 +23,9 @@ class Moderation(commands.Cog):
 		raise commands.CheckFailure(message = "Add a default role for this guild first, using `h!defaultrole [role]`")
 
 	@commands.Cog.listener()
-	async def on_member_remove(self, member):
-		with open("data/roles.json", "r") as foo:
-			data = json.loads(foo.read())
-		roles = [i.id for i in member.roles[1:]]
-		data[str(member.guild.id)].update({str(member.id): roles})
-		with open("data/roles.json", "w") as foo:
-			foo.write(json.dumps(data, indent = 2))
+	async def on_member_remove(self, member: discord.Member):
+		if len(member.roles) != 1:
+			self.bot.db['roles'].insert_one({'guild': member.guild.id, 'user': member.id, 'roles': [i.id for i in member.roles[1:]]})
 
 	@commands.command()
 	@commands.has_permissions(manage_messages = True)
@@ -137,22 +133,17 @@ class Moderation(commands.Cog):
 	@commands.has_permissions(manage_roles = True)
 	@commands.check(guildcheck)
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
-		with open("data/roles.json", "r") as foo:
-			data = json.loads(foo.read())
+		data = self.bot.db['roles'].find_one({'user': member.id})
 		roles = []
-		if str(member.id) in data[str(ctx.guild.id)]:
-			for i in data[str(ctx.guild.id)][str(member.id)]:
-				role = discord.utils.find(lambda role: role.id == i, ctx.guild.roles)
+		if data != None:
+			for i in data['roles']:
+				role = discord.utils.get(ctx.guild.roles, id = i)
 				roles.append(role)
-			data[str(ctx.guild.id)].pop(str(member.id))
-			with open("data/roles.json", "w") as foo:
-				foo.write(json.dumps(data, indent = 2))
-			await member.edit(roles = roles, nick = name)
 		else:
 			id_ = self.bot.db["Guild settings"].find_one({"_id": ctx.guild.id})["default role"]
 			role = discord.utils.get(ctx.guild.roles, id = id_)
 			roles.append(role)
-			await member.edit(roles = roles, nick = name)
+		await member.edit(roles = roles, nick = name)
 		await ctx.send("Verified!")
 
 def setup(bot):
