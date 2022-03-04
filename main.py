@@ -39,20 +39,11 @@ class HoQBot(commands.Bot):
 		await asyncio.sleep(5)
 		await c.send("Bot online")
 
-		with open("data/roles.json", "r") as foo:
-			data = json.loads(foo.read())
-
 		for i in self.guilds:
-			id = guildid(i.id)
-			if str(i.id) not in data.keys():
-				data.update({str(i.id): {None: None}})
 			try:
 				self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
 			except:
 				pass
-
-		with open("data/roles.json", "w") as foo:
-			foo.write(json.dumps(data, indent = 2))
 
 	async def on_guild_join(self, guild):
 		id = guildid(guild.id)
