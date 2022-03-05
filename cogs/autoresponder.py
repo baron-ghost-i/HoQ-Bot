@@ -80,7 +80,7 @@ class Autoresponder(commands.Cog):
 		if react == "":
 			react = "None"
 
-		outstr = "__**Normal autoresponses:**__\n\n {} \n\n __**Wildcards:**__\n\n {} \n\n __**Reactions:**__\n\n {} ".format(norm, wild, react)
+		outstr = "__**Normal autoresponses:**__\n{} \n\n __**Wildcards:**__\n{} \n\n __**Reactions:**__\n {} ".format(norm, wild, react)
 
 		if len(outstr) <= 4096:
 			await ctx.send(embed = discord.Embed(description = outstr, color = 0x00FF77, timestamp = datetime.datetime.now()))
