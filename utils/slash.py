@@ -17,14 +17,14 @@ class CancelButton(discord.ui.Button):
 		await interaction.message.edit(view = self.view)
 
 class SelectMenu(discord.ui.Select):
-	def __init__(self, bot, gid: int, wildcard: bool, user):
+	def __init__(self, bot, gid: int, type: str, user):
 		opts = []
 		self.bot = bot
 		self._user = user
 		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
-		self._type = wildcard
-		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'wildcard': self._type})]
+		self._type = type
+		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': self._type})]
 		
 		for i in data:
 			opts.append(discord.SelectOption(label = i["trigger"]))
@@ -79,13 +79,13 @@ class Slashcommands:
 			return
 			
 		id_ = guildid(self.interaction.guild_id)
-		wildcard = self.data.pop("wildcard")
+		type = self.data.get("type", "normal")
 
 		self.bot.db['autoresponder'].insert_one({
 			'guild': id_,
 			'trigger': self.data['trigger'],
 			'response': self.data['response'],
-			'wildcard': wildcard
+			'type': type
 		})
 
 		await self.interaction.response.send_message("Autoresponse successfully added!")
@@ -96,14 +96,14 @@ class Slashcommands:
 			return
 			
 		ID = guildid(self.interaction.guild_id)
-		wildcard: bool = self.data.pop("wildcard")
+		type = self.data['type']
 		
-		if self.bot.db['autoresponder'].count_documents({'guild': ID, 'wildcard': wildcard}) == 0:
+		if self.bot.db['autoresponder'].count_documents({'guild': ID, 'type': type}) == 0:
 			await self.interaction.response.send_message("No trigger available under this category", ephemeral =  True)
 			return	
 		
 		view = discord.ui.View(timeout=60.0)
-		view.add_item(SelectMenu(bot = self.bot, gid = ID, wildcard = wildcard, user=self.interaction.user))
+		view.add_item(SelectMenu(bot = self.bot, gid = ID, type = type, user=self.interaction.user))
 		view.add_item(CancelButton(user = self.interaction.user))
 		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
 

@@ -5,37 +5,37 @@ import datetime
 import discord
 from discord.ext import commands
 
+from typing import Union
+
 from utils.utils import *
 
 
 class Autoresponder(commands.Cog):
-
 	
 	def __init__(self, bot):
 		self.bot = bot
 
-		
 	@commands.command(aliases = ('addresp',))
 	@commands.guild_only()
 	@admincheck()
-	async def addresponse(self, ctx, trigger, response, wildcard = None):
+	async def addresponse(self, ctx, trigger, response: Union[discord.Emoji, str], type = None):
+		if isinstance(response, discord.Emoji):
+			response = "<{}:{}:{}>".format(('a' if response.animated else ''), response.name, response.id)
+		
 		if any(["__" in response, "lambda" in response]):
 			await ctx.send("Cannot add that autoresponse")
 			return
 
 		id = guildid(ctx.guild.id)
-		if wildcard == None or wildcard.lower() != "wildcard":
-			wildcard = False
-		else:
-			wildcard = True
+		if type == None:
+			type = 'normal'
 		self.bot.db['autoresponder'].insert_one({
 			'guild': id,
-			'wildcard': wildcard,
+			'type': type,
 			'trigger': trigger,
 			'response': response
 		})
 		await ctx.send("Autoresponse successfully added")
-
 			
 	@commands.command(aliases = ('removeresp',))
 	@commands.guild_only()
@@ -54,7 +54,6 @@ class Autoresponder(commands.Cog):
 			raise
 		else:
 			await ctx.send("Trigger successfully removed")
-
 			
 	@commands.command(aliases = ('responses', 'resps'))
 	@commands.guild_only()
@@ -65,13 +64,16 @@ class Autoresponder(commands.Cog):
 
 		wild = ""
 		norm = ""
+		react = ""
 		for i in self.bot.db['autoresponder'].find({'guild': id}):
-			if i['wildcard'] == True:
+			if i['type'] == 'wildcard':
 				wild += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`"
+			elif i['type'] == 'reaction':
+				react += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`"
 			else:
 				norm += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`"
 
-		outstr = "__**Normal autoresponses:**__\n\n {} \n\n __**Wildcards:**__\n\n {}".format(norm, wild)
+		outstr = "__**Normal autoresponses:**__\n\n {} \n\n __**Wildcards:**__\n\n {} \n\n __**Reactions:**__\n\n {} ".format(norm, wild, react)
 
 		if len(outstr) <= 4096:
 			await ctx.send(embed = discord.Embed(description = outstr, color = 0x00FF77, timestamp = datetime.datetime.now()))
@@ -99,8 +101,19 @@ class Autoresponder(commands.Cog):
 
 		msg = re.sub('[.,;:?!/\-\'\"]', '', message.content).lower()
 
-		normal = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'wildcard': False})]
-		wild = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'wildcard': True})]
+		normal = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'type': 'normal'})]
+		wild = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'type': 'wildcard'})]
+		react = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'type': 'reaction'})]
+
+		for i in react:
+			if (msg.startswith(f"{i[0]} ")) or (msg.endswith(f" {i[0]}")) or (f" {i[0]} " in msg) or (msg == i[0]):
+				async with message.channel.typing():
+					await asyncio.sleep(0.5)
+					try:
+						reply = eval(i[1])
+					except:
+						reply = i[1]
+					return await message.reply(reply)
 
 		for i in normal:
 			if msg == i[0].lower():
