@@ -62,9 +62,9 @@ class Autoresponder(commands.Cog):
 		if self.bot.db['autoresponder'].count_documents({"guild": id}) == 0:
 			return await ctx.send("No autoresponse on this guild")
 
-		wild = "None"
-		norm = "None"
-		react = "None"
+		wild = ""
+		norm = ""
+		react = ""
 		for i in self.bot.db['autoresponder'].find({'guild': id}):
 			if i['type'] == 'wildcard':
 				wild += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`\n"
@@ -72,6 +72,13 @@ class Autoresponder(commands.Cog):
 				react += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`\n"
 			else:
 				norm += f"• `\"{i['trigger']}\"` — `\"{i['response']}\"`\n"
+
+		if wild == "":
+			wild = "None"
+		if norm == "":
+			norm = "None"
+		if react == "":
+			react = "None"
 
 		outstr = "__**Normal autoresponses:**__\n\n {} \n\n __**Wildcards:**__\n\n {} \n\n __**Reactions:**__\n\n {} ".format(norm, wild, react)
 
