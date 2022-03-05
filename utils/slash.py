@@ -75,7 +75,7 @@ class Slashcommands:
 			await self.interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
 			return
 
-		if any([not self.data['response'].startswith('<:'), not self.data['response'].startswith('<a:'), re.sub('[.,;?!/\-\'\"]', '', self.data['response']).isalnum()]) and self.data.get('type') == 'reaction':
+		if (any([self.data['response'].startswith('<:'), self.data['response'].startswith('<a:')]) or re.sub('[.,;?!/\-\'\"]', '', self.data['response']).isalnum()) and self.data.get('type') == 'reaction':
 			return await self.interaction.response.send_message("Can't add a non-emoji response for reaction", ephemeral = True)
 			
 		if not self.interaction.user.guild_permissions.manage_messages:

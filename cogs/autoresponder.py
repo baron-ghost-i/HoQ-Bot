@@ -25,7 +25,7 @@ class Autoresponder(commands.Cog):
 		if any(["__" in response, "lambda" in response]):
 			return await ctx.send("Cannot add that autoresponse")
 
-		if any([not response.startswith('<:'), not response.startswith('<a:'), re.sub('[.,;?!/\-\'\"]', '', response).isalnum()]) and type == 'reaction':
+		if (any([self.data['response'].startswith('<:'), self.data['response'].startswith('<a:')]) or re.sub('[.,;?!/\-\'\"]', '', self.data['response']).isalnum()) and self.data.get('type') == 'reaction':
 			return await ctx.reply("Can't add a non-emoji response for reaction")
 
 		id = guildid(ctx.guild.id)
