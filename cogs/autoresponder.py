@@ -18,13 +18,15 @@ class Autoresponder(commands.Cog):
 	@commands.command(aliases = ('addresp',))
 	@commands.guild_only()
 	@admincheck()
-	async def addresponse(self, ctx, trigger, response: Union[discord.Emoji, str], type = None):
+	async def addresponse(self, ctx: commands.Context, trigger, response: Union[discord.Emoji, str], type = None):
 		if isinstance(response, discord.Emoji):
 			response = "<{}:{}:{}>".format(('a' if response.animated else ''), response.name, response.id)
 		
 		if any(["__" in response, "lambda" in response]):
-			await ctx.send("Cannot add that autoresponse")
-			return
+			return await ctx.send("Cannot add that autoresponse")
+
+		if any([not response.startswith('<:'), not response.startswith('<a:'), re.sub('[.,;?!/\-\'\"]', '', response).isalnum()]) and type == 'reaction':
+			return await ctx.reply("Can't add a non-emoji response for reaction")
 
 		id = guildid(ctx.guild.id)
 		if type == None:
