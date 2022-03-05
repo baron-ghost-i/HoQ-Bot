@@ -114,13 +114,10 @@ class Autoresponder(commands.Cog):
 
 		for i in react:
 			if (msg.startswith(f"{i[0]} ")) or (msg.endswith(f" {i[0]}")) or (f" {i[0]} " in msg) or (msg == i[0]):
-				async with message.channel.typing():
-					await asyncio.sleep(0.5)
-					try:
-						reply = eval(i[1])
-					except:
-						reply = i[1]
-					return await message.reply(reply)
+				try:
+					await message.add_reaction(i[1])
+				except:
+					pass
 
 		for i in normal:
 			if msg == i[0].lower():
