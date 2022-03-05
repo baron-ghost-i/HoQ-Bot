@@ -5,11 +5,7 @@ import datetime
 import discord
 from discord.ext import commands
 
-from utils.utils import (
-	guildid,
-	admincheck,
-	PaginatorView
-	)
+from utils.utils import *
 
 
 class Autoresponder(commands.Cog):
@@ -107,26 +103,34 @@ class Autoresponder(commands.Cog):
 		wild = [(i['trigger'], i['response']) for i in self.bot.db['autoresponder'].find({'guild': id, 'wildcard': True})]
 
 		for i in normal:
-			if message.content.lower() == i[0].lower():
+			if msg == i[0].lower():
 				async with message.channel.typing():
 					await asyncio.sleep(0.5)
-					return await message.reply(i[1])
+					try:
+						reply = eval(i[1])
+					except:
+						reply = i[1]
+					return await message.reply(reply)
 
 		for i in wild:
 			if (msg.startswith(f"{i[0]} ")) or (msg.endswith(f" {i[0]}")) or (f" {i[0]} " in msg) or (msg == i[0]):
 				async with message.channel.typing():
 					await asyncio.sleep(0.5)
-					return await message.reply(i[1])
+					try:
+						reply = eval(i[1])
+					except:
+						reply = i[1]
+					return await message.reply(reply)
 
 		if any([" i'm " in msg, " im " in msg, " i am " in msg, msg.startswith('im '), msg.startswith("i'm "), msg.startswith('i am ')]) and dcheck and len(msg) <= 2035:
 			pos = None
 			for i in ["im", "i am", "i'm"]:
-				match = re.match(i, msg)
+				match = re.search(i, msg)
 				if match != None:
 					pos = match.end()
 					break
 			if pos != None:
-				reply = f"Hi{msg[pos:]}, I\'m dad!"
+				reply = f"Hi{msg[pos:]}, I'm dad!"
 				async with message.channel.typing():
 					await asyncio.sleep(0.5)
 					return await message.reply(reply)
