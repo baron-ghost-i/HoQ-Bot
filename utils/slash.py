@@ -1,5 +1,6 @@
 import discord
 import datetime
+import re
 from utils.utils import guildid
 
 class CancelButton(discord.ui.Button):
@@ -73,6 +74,9 @@ class Slashcommands:
 		if any(["__" in self.data["response"], "lambda" in self.data["response"]]):
 			await self.interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
 			return
+
+		if any([not self.data['response'].startswith('<:'), not self.data['response'].startswith('<a:'), re.sub('[.,;?!/\-\'\"]', '', self.data['response']).isalnum()]) and self.data.get('type') == 'reaction':
+			return await self.interaction.response.send_message("Can't add a non-emoji response for reaction", ephemeral = True)
 			
 		if not self.interaction.user.guild_permissions.manage_messages:
 			await self.interaction.response.send_message("You do not have the permission to use this command", ephemeral = True)
