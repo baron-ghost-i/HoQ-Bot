@@ -31,12 +31,15 @@ class Autoresponder(commands.Cog):
 		id = guildid(ctx.guild.id)
 		if type == None:
 			type = 'normal'
-		self.bot.db['autoresponder'].insert_one({
-			'guild': id,
-			'type': type,
-			'trigger': trigger,
-			'response': response
-		})
+		if self.bot.db['autoresponder'].find_one({'trigger': self.data['trigger'], 'type': type, 'guild': id}) == None:
+			self.bot.db['autoresponder'].insert_one({
+				'guild': id,
+				'trigger': self.data['trigger'],
+				'response': self.data['response'],
+				'type': type
+			})
+		else:
+			self.bot.db['autoresponder'].find_one_and_update({'guild': id, 'type': type, 'trigger': self.data['trigger']}, {'$set': {'response': self.data['response']}})
 		await ctx.send("Autoresponse successfully added")
 			
 	@commands.command(aliases = ('removeresp',))

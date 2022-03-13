@@ -85,12 +85,15 @@ class Slashcommands:
 		id_ = guildid(self.interaction.guild_id)
 		type = self.data.get("type", "normal")
 
-		self.bot.db['autoresponder'].insert_one({
-			'guild': id_,
-			'trigger': self.data['trigger'],
-			'response': self.data['response'],
-			'type': type
-		})
+		if self.bot.db['autoresponder'].find_one({'trigger': self.data['trigger'], 'type': type, 'guild': id_}) == None:
+			self.bot.db['autoresponder'].insert_one({
+				'guild': id_,
+				'trigger': self.data['trigger'],
+				'response': self.data['response'],
+				'type': type
+			})
+		else:
+			self.bot.db['autoresponder'].find_one_and_update({'guild': id_, 'type': type, 'trigger': self.data['trigger']}, {'$set': {'response': self.data['response']}})
 
 		await self.interaction.response.send_message("Autoresponse successfully added!")
 
