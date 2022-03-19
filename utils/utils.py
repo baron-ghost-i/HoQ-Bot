@@ -76,6 +76,9 @@ def ownercheck():
 		return ctx.author.id == 586088176037265408
 	return commands.check(predicate)
 
+def ownercheck_interaction(interaction: discord.Interaction):
+	return interaction.user.id == 586088176037265408
+
 def guildid(id: int) -> int:
 	if id in [850039242481991700,808257138882641960, 839939906558361627, 786520972064587786]:
 		return 612234021388156938

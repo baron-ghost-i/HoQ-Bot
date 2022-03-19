@@ -11,6 +11,7 @@ token = os.getenv('Token')
 intents = discord.Intents.default()
 intents.members = True
 intents.typing = False
+intents.message_content = True
 
 class HoQBot(commands.Bot):
 	def __init__(self, *args, **kwargs):
