@@ -3,6 +3,7 @@ import json
 import random
 import asyncio
 import datetime
+from discord import app_commands
 from discord.ext import commands
 
 class Misc(commands.Cog):
@@ -13,6 +14,10 @@ class Misc(commands.Cog):
 	async def ping(self, ctx):
 		ping = round(self.bot.latency*1000)
 		await ctx.channel.send(f"Ping: {ping} ms")
+
+	@app_commands.command(name='ping',description='Returns websocket latency (ping)')
+	async def _ping(self, interaction: discord.Interaction):
+		await interaction.response.send_message(f'Ping: {round(self.bot.latency*1000)} ms')
 		
 	@commands.command()
 	async def invite(self, ctx):
