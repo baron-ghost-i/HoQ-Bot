@@ -4,7 +4,6 @@ import asyncio
 import aiohttp
 import pymongo
 from discord.ext import commands
-from utils.slash import Slashcommands
 from utils.utils import guildid
 
 token = os.getenv('Token')
