@@ -109,5 +109,5 @@ class Misc(commands.Cog):
 		except:
 			raise
 
-def setup(bot):
-	bot.add_cog(Misc(bot))
+async def setup(bot):
+	await bot.add_cog(Misc(bot))

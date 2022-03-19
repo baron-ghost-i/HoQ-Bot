@@ -146,5 +146,5 @@ class Fun(commands.Cog):
 		phrase = message.content
 		len_ = len(phrase)'''
 
-def setup(bot):
-	bot.add_cog(Fun(bot))
+async def setup(bot):
+	await bot.add_cog(Fun(bot))

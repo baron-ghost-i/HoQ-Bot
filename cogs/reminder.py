@@ -61,5 +61,5 @@ class Reminder(commands.Cog):
 		except:
 			pass
 
-def setup(bot):
-	bot.add_cog(Reminder(bot))
+async def setup(bot):
+	await bot.add_cog(Reminder(bot))

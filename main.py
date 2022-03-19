@@ -17,33 +17,26 @@ class HoQBot(commands.Bot):
 		super().__init__(*args, **kwargs)
 		self.session = None
 		self.db = pymongo.MongoClient(os.getenv("mongourl"))["HoQ-Bot"]
+	
+	async def setup_hook(self):
+		self.session = aiohttp.ClientSession()
 		for i in os.scandir(path = "cogs"):
 			if i.name.endswith(".py"):
-				self.load_extension(f"cogs.{i.name[:-3]}")
-	
-	async def on_connect(self):
-		self.session = aiohttp.ClientSession()
-
-	async def on_interaction(self, interaction: discord.Interaction):
-		slash = Slashcommands(self, interaction)
-		if interaction.type != discord.InteractionType.application_command:
-			return
-		try:
-			await slash.execute()
-		except AttributeError:
-			raise
+				await self.load_extension(f"cogs.{i.name[:-3]}")
 		
 	async def on_ready(self):
 		c = self.get_channel(850039242481991703)
 		await asyncio.sleep(5)
 		await c.send("Bot online")
-
+		await self.tree.sync()
 		for i in self.guilds:
 			try:
 				id = guildid(i.id)
 				assert self.db['Guild settings'].find_one({'_id': id}) != None
-			except:
+			except AssertionError:
 				self.db["Guild settings"].insert_one({"_id": id, "dadmode": False, "default role": None, "autoresponder": False})
+			except:
+				raise
 
 
 	async def on_guild_join(self, guild):
@@ -67,9 +60,10 @@ class HoQBot(commands.Bot):
 		elif isinstance(error, commands.CommandInvokeError):
 			err = error.original
 			if isinstance(err, discord.HTTPException):
-				await ctx.reply(embed = discord.Embed(description = f"{err.status} Error: {err.text}", color = discord.Color.red()))
+				await ctx.reply(embed = discord.Embed(description = f"{err.status}: {err.text}", color = discord.Color.red()))
 			else:
-				raise err
+				user = self.get_user(586088176037265408)
+				await user.send(str(err))
 		
 		elif isinstance(error, commands.PrivateMessageOnly):
 			await ctx.reply(embed = discord.Embed(description = "Use this command in DMs!", color = discord.Color.red()))
@@ -97,6 +91,8 @@ class HoQBot(commands.Bot):
 			
 bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
 
+
+
 def isme(ctx):
 		return ctx.author.id == 586088176037265408
 
@@ -106,12 +102,12 @@ async def reload(ctx, *, extension = None):
 	try:
 		if extension != None:
 			try:
-				ctx.bot.reload_extension(name = f"cogs.{extension}")
+				await ctx.bot.reload_extension(name = f"cogs.{extension}")
 			except:
 				await ctx.send("Extension not found")
 		else:
 			for i in list(ctx.bot.extensions):
-				ctx.bot.reload_extension(name = i)
+				await ctx.bot.reload_extension(name = i)
 		await ctx.send("Reloaded!")
 	except:
 		raise

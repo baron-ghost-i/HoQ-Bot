@@ -165,5 +165,5 @@ class Music(commands.Cog):
 		else:
 			await ctx.send("Not connected to any voice channel")
 
-def setup(bot):
-	bot.add_cog(Music(bot))
+async def setup(bot):
+	await bot.add_cog(Music(bot))

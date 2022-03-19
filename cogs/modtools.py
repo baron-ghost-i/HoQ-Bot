@@ -1,7 +1,11 @@
+from ctypes import Union
 import discord
 import asyncio
 import datetime
+from discord import app_commands
 from discord.ext import commands
+
+from utils.utils import ownercheck_interaction
 
 class Moderation(commands.Cog):
 	def __init__(self, bot):
@@ -145,5 +149,31 @@ class Moderation(commands.Cog):
 		await member.edit(roles = roles, nick = name)
 		await ctx.send("Verified!")
 
-def setup(bot):
-	bot.add_cog(Moderation(bot))
+	@app_commands.command(name='mute', description='Puts a user on timeout. Not specifying any time removes timeout.')
+	@app_commands.describe(
+		member = 'Member to mute',
+		days='Number of days to muting user for (cannot exceed 28 days)',
+		hours='Number of hours to mute user for',
+		minutes='Number of minutes to mute user for',
+		seconds='Number of seconds to mute user for',
+		reason='Reason for muting user')
+	async def mute(self, interaction: discord.Interaction, member: discord.Member, days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0, reason: str = None):
+		if not (interaction.user.guild_permissions.moderate_members or ownercheck_interaction(interaction)):
+			return await interaction.response.send_message('You do not have the permission to use this command', ephemeral = True)
+
+		if member.guild_permissions.administrator:
+			return await interaction.response.send_message('Cannot mute this member!', ephemeral = True)
+			
+		t=seconds+(60*minutes)+(60*60*hours)+(60*60*24*days)
+		
+		if t > 2419200:
+			return await interaction.response.send_message("Timeout cannot exceed maximum time limit of 28 days", ephemeral = True)
+		if t == 0:
+			timeout = None
+		else:
+			timeout = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+t).astimezone()
+		await member.edit(timed_out_until = timeout, reason = reason)
+		await interaction.response.send_message("Member successfully {}! Reason: {}".format("muted" if timeout != None else "unmuted", reason))
+
+async def setup(bot):
+	await bot.add_cog(Moderation(bot))

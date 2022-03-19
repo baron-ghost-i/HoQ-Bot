@@ -6,6 +6,7 @@ import json
 import re
 import datetime
 from discord.ext import commands
+from discord import app_commands
 from utils.utils import ownercheck
 		
 class GoogleView(discord.ui.View):
@@ -33,7 +34,7 @@ class GoogleView(discord.ui.View):
 		embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
 		embed.set_author(name = self.user, icon_url = self.user.avatar.url)
 		await asyncio.sleep(0.25)
-		await interaction.message.edit(embed = embed)
+		await interaction.response.edit_message(embed = embed)
 	
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯")
 	async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -49,7 +50,7 @@ class GoogleView(discord.ui.View):
 		embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
 		embed.set_author(name = self.user, icon_url = self.user.avatar.url)
 		await asyncio.sleep(0.25)
-		await interaction.message.edit(embed = embed)
+		await interaction.response.edit_message(embed = embed)
 		
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯❯")
 	async def jump(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -69,11 +70,11 @@ class GoogleView(discord.ui.View):
 			await asyncio.sleep(0.25)
 			await interaction.message.edit(embed = embed)
 		else:
-			await interaction.response.send_message(content = "Invalid input provided")
+			await interaction.message.edit(content = "Invalid input provided")
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
 	async def end(self, button: discord.ui.Button, interaction: discord.Interaction):
-		await interaction.message.edit(view = None)
+		await interaction.response.edit_message(view = None)
 		self.stop()
 
 class Utils(commands.Cog):
@@ -87,19 +88,25 @@ class Utils(commands.Cog):
 		self.cache = {}
 		self.cache2 = {}
 
-	async def image(self, arg, gif: bool = False):
-		query = "-".join(list(arg)).lower()
-		if query in self.cache.keys():
-			print("cache hit!")
-			return self.cache[f"{query}"]
+	group = app_commands.Group(name='search', description='Queries Google for media')
+
+	async def _image(self, arg: str, gif: bool = False):
+		query = arg.replace(" ", "-")
+		if query in self.cache.keys() and gif == False:
+			print('hit')
+			return self.cache[query]
+		elif query in self.cache2.keys() and gif == True:
+			print('hit')
+			return self.cache2[query]
 		else:
 			if gif == False:
 				param = ""
 			else:
 				param = "&fileType=gif"
-			q1, q2, q3, q4, q5 = f"https://www.googleapis.com/customsearch/v1?key={self.key1}&cx=113278b73f24404b1&q={query}&searchType=image{param}", f"https://www.googleapis.com/customsearch/v1?key={self.key2}&cx=113278b73f24404b1&q={query}&searchType=image&{param}&start=11", f"https://www.googleapis.com/customsearch/v1?key={self.key3}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start=21", f"https://www.googleapis.com/customsearch/v1?key={self.key4}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start=31", f"https://www.googleapis.com/customsearch/v1?key={self.key5}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start=41"
-			lis = []
-			for q in [q1, q2, q3, q4, q5]:
+			basestring = f"https://www.googleapis.com/customsearch/v1?key={self.key1}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start="
+			searchstrings = [basestring+str(i) for i in range(1,42,10)]
+			images = []
+			for q in searchstrings:
 				async with self.bot.session.get(q) as res:
 					try:
 						stat = res.status
@@ -108,30 +115,36 @@ class Utils(commands.Cog):
 						assert "items" in content.keys() and stat == 200
 						for i in content["items"]:
 							if i["fileFormat"] =="image/":
-								lis.append((i["title"], i["image"]["contextLink"], i["image"]["thumbnailLink"]))
+								images.append((i["title"], i["image"]["contextLink"], i["image"]["thumbnailLink"]))
 							else:
-								lis.append((i["title"], i["image"]["contextLink"], i["link"]))
+								images.append((i["title"], i["image"]["contextLink"], i["link"]))
 					except AssertionError:
 						raise discord.HTTPException(response = res, message = content["error"]["message"])
-						break
 					except:
 						raise
-						break
-			self.cache.update({f"{query}": lis})
-			return lis
+			if not gif:
+				self.cache.update({query: images})
+			else:
+				self.cache2.update({query: images})
+			return images
 
-	@commands.command(aliases = ("im", "image"))
-	async def img(self, ctx, *args):
-		'''Returns a list of fifty images using Google search'''
-		resp = await self.image(args)
+	async def execute_image(self, user, search: str, gif: bool = False):
+		resp = await self._image(search, gif)
 		link = resp[0][2]
 		if "(" in link and ")" in link:
 			link = link.replace("(", "\(").replace(")", "\)")
 		embed = discord.Embed(title = resp[0][0], url = resp[0][1], description = f"[Image URL]({link})", color = 0x00FF77, timestamp = datetime.datetime.now(datetime.timezone.utc))
 		embed.set_image(url = resp[0][2])
-		embed.set_author(name = ctx.author, icon_url = ctx.author.avatar.url)
+		embed.set_author(name = user, icon_url = user.avatar.url)
 		embed.set_footer(text = f"Page 1 of {len(resp)}")
-		view = GoogleView(user = ctx.author, resp = resp, bot = self.bot)
+		view = GoogleView(user = user, resp = resp, bot = self.bot)
+		return (embed, view)
+		
+
+	@commands.command(aliases = ("im", "image"))
+	async def img(self, ctx, *, search):
+		'''Returns a list of fifty images using Google search'''
+		embed, view = await self.execute_image(ctx.author, search)
 		msg = await ctx.send(embed = embed, view = view)
 		while True:
 			result = await view.wait()
@@ -142,21 +155,40 @@ class Utils(commands.Cog):
 				break
 	
 	@commands.command()
-	async def gif(self, ctx, *args):
+	async def gif(self, ctx, *, search):
 		'''Returns a list of fifty GIFs using Google search''' 
-		resp = await self.image(args, gif = True)
-		link = resp[0][2]
-		if "(" in link and ")" in link:
-			link = link.replace("(", "\(").replace(")", "\)")
-		embed = discord.Embed(title = resp[0][0], url = resp[0][1], description = f"[Image URL]({link})", color = 0x00FF77, timestamp = datetime.datetime.now(datetime.timezone.utc))
-		embed.set_image(url = resp[0][2])
-		embed.set_footer(text = f"Page 1 of {len(resp)}")
-		view = GoogleView(user = ctx.author, resp = resp, bot = self.bot)
+		embed, view = await self.execute_image(ctx.author, search, gif=True)
 		msg = await ctx.send(embed = embed, view = view)
 		while True:
 			result = await view.wait()
 			if result:
 				await msg.edit(view = None)
+				break
+			elif not result:
+				break
+
+	@group.command(name = "image", description="Searches for static images")
+	@app_commands.describe(search="Query string to search with")
+	async def image(self, interaction: discord.Interaction, search: str):
+		embed, view = await self.execute_image(interaction.user, search)
+		await interaction.response.send_message(embed = embed, view = view)
+		while True:
+			result = await view.wait()
+			if result:
+				await interaction.edit_original_message(view = None)
+				break
+			elif not result:
+				break
+
+	@group.command(name = "gif", description="Searches for static images")
+	@app_commands.describe(search="Query string to search with")
+	async def GIF(self, interaction: discord.Interaction, search: str):
+		embed, view = await self.execute_image(interaction.user, search, gif=True)
+		await interaction.response.send_message(embed = embed, view = view)
+		while True:
+			result = await view.wait()
+			if result:
+				await interaction.edit_original_message(view = None)
 				break
 			elif not result:
 				break
@@ -381,7 +413,7 @@ class Info(commands.Cog):
 		embed.set_image(url = ctx.guild.icon.url)
 		await ctx.channel.send(embed = embed)
 
-def setup(bot):
-	bot.add_cog(Math(bot))
-	bot.add_cog(Utils(bot))
-	bot.add_cog(Info(bot))
+async def setup(bot):
+	await bot.add_cog(Math(bot))
+	await bot.add_cog(Utils(bot))
+	await bot.add_cog(Info(bot))

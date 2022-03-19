@@ -83,5 +83,5 @@ More commands:
 		self.bot.db["Guild settings"].update_one({"_id": id}, {"$set": {"default role": roleid}})
 		await ctx.send("Default role set!")
 
-def setup(bot):
-	bot.add_cog(Configuration(bot))
+async def setup(bot):
+	await bot.add_cog(Configuration(bot))

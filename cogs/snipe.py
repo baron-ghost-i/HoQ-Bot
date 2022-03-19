@@ -58,5 +58,5 @@ class MessageSnipe(commands.Cog):
 		else:
 			await ctx.send("There is nothing to snipe!")
 
-def setup(bot):
-	bot.add_cog(MessageSnipe(bot))
+async def setup(bot):
+	await bot.add_cog(MessageSnipe(bot))

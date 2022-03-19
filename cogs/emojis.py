@@ -31,8 +31,8 @@ class Emojis(commands.Cog):
 		else:
 			await ctx.channel.send("No emoji on this server")
 			
-	@commands.command(aliases = ("enlarge", "imagify"))
-	async def e(self, ctx, emoji: typing.Union[discord.PartialEmoji, str]):
+	@commands.command(aliases = ("e",))
+	async def enlarge(self, ctx, emoji: typing.Union[discord.PartialEmoji, str]):
 			'''Returns the image for an emoji'''
 			embd = discord.Embed(timestamp = datetime.datetime.now())
 			if type(emoji) != str:
@@ -75,8 +75,8 @@ class Emojis(commands.Cog):
 				embd.set_image(url = url)
 				await ctx.channel.send(embed = embd)
 
-	@commands.command(aliases = ("enlarge2",))
-	async def e2(self, ctx, *, name: str):
+	@commands.command(aliases = ("e2",))
+	async def enlarge_from_name(self, ctx, *, name: str):
 		name = name.replace(" ", "_")
 		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), ctx.guild.emojis)
 		try:
@@ -154,5 +154,5 @@ class Emojis(commands.Cog):
 		except:
 			raise
 
-def setup(bot):
-	bot.add_cog(Emojis(bot))
+async def setup(bot):
+	await bot.add_cog(Emojis(bot))

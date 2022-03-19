@@ -43,5 +43,5 @@ class AFK(commands.Cog):
 				if user.id in keys:
 					await message.channel.send(embed = discord.Embed(description = f"{user.mention} is currently AFK: {msgs[keys.index(user.id)]}", color = 0x73FFA2, timestamp = datetime.datetime.now()))
 
-def setup(bot):
-	bot.add_cog(AFK(bot))
+async def setup(bot):
+	await bot.add_cog(AFK(bot))

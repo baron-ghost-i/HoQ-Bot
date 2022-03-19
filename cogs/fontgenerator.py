@@ -188,5 +188,5 @@ Options available:
 			await webhook.send(resp, username = name, avatar_url = ctx.author.avatar.url)
 			await ctx.message.delete()
 
-def setup(bot):
-	bot.add_cog(Speak(bot))
+async def setup(bot):
+	await bot.add_cog(Speak(bot))
