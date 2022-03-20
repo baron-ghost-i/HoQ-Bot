@@ -309,7 +309,7 @@ class Info(commands.Cog):
 			flags = ", ".join([str(i).replace("UserFlags.", "").replace("_", " ").title() for i in flags])
 		else:
 			flags = None
-		if user.accent_color is not None:
+		if user.accent_color != None:
 			color = user.accent_color
 		else:
 			color = discord.Color.teal()
@@ -336,6 +336,8 @@ class Info(commands.Cog):
 		embed.add_field(name = "Joined", value = joindate, inline = False)
 		embed.add_field(name = "Flags", value = flags, inline = False)
 		embed.add_field(name = f"Roles [{rolelength}]", value = roles, inline = False)
+		if user.timed_out_until != None:
+			embed.add_field(name='Timeout Expiration', value=user.timed_out_until.strftime("%d.%m.%Y, %H:%M:%S UTC"))
 		if user.avatar != None:
 			embed.set_thumbnail(url = user.avatar.url)
 			embed.set_author(name = user, icon_url = user.avatar.url)
@@ -349,20 +351,21 @@ class Info(commands.Cog):
 		await ctx.send(embed = embed)
 
 	@commands.command()
-	async def serverinfo(self, ctx):
+	@commands.guild_only()
+	async def serverinfo(self, ctx: commands.Context):
 		'''Returns information about the guild the command is used on'''
 		name = ctx.author
 		if ctx.author.avatar != None:
 			userurl = ctx.author.avatar.url
 		else:
-			userurl = discord.Embed.Empty
-		roles, rolestr, emojis, emojistr = [], None, [], None
+			userurl = None
+		roles, emojis, rolestr, emojistr, channelstr = [], [], None, None, None
 		for i in ctx.guild.roles:
 			roles.append(i.mention)
 		roles.pop(0)
 		if roles != []:
 			rolestr = " ".join(roles)
-		num1 = len(roles)
+		rcount = len(roles)
 		for i in ctx.guild.emojis:
 			if i.animated == True:
 				emojis.append(f"<a:{i.name}:{i.id}>")
@@ -370,7 +373,10 @@ class Info(commands.Cog):
 				emojis.append(f"<:{i.name}:{i.id}>")
 		if emojis != []:
 			emojistr = " ".join(emojis)
-		num2 = len(emojis)
+		ecount = len(emojis)
+		ccount=len(ctx.guild.channels)
+		channelstr = "\n".join([f"**{i.name}**: {len(i.channels)}" for i in ctx.guild.categories])
+		channelstr += f"\n**No Category:** {len([i for i in ctx.guild.channels if i.category==None])}"
 
 		embed = discord.Embed(color = 0x00FF99, timestamp = datetime.datetime.now(datetime.timezone.utc))
 		embed.set_author(name = name, icon_url = userurl)
@@ -379,20 +385,22 @@ class Info(commands.Cog):
 		embed.add_field(name = "Name", value = f"{ctx.guild.name}", inline = True)
 		embed.add_field(name = "Owner", value = f"{ctx.guild.owner}", inline = True)
 		embed.add_field(name = "Created on", value = "{}".format(ctx.guild.created_at.strftime("%A, %B %d, %Y, %H:%M UTC")), inline = False)
-		embed.add_field(name = "Region", value = f"{str(ctx.guild.region).capitalize()}", inline = False)
+		embed.add_field(name=f"Channel count[{ccount}]", value=channelstr)
+		embed.add_field(name = "Preferred locale", value = f"{str(ctx.guild.preferred_locale).upper()}", inline = False)
 		embed.add_field(name = "Verification level", value = f"{str(ctx.guild.verification_level).capitalize()}", inline = False)
 		if rolestr == None or len(rolestr) < 1024:
-			embed.add_field(name = f"Roles[{num1}]", value = f"{rolestr}", inline = False)
+			embed.add_field(name = f"Roles[{rcount}]", value = f"{rolestr}", inline = False)
 		else:
-			embed.add_field(name = f"Roles[{num1}]", value = "Use `h!roles` for getting a list of roles", inline = False)
+			embed.add_field(name = f"Roles[{rcount}]", value = "Use `h!roles` for getting a list of roles", inline = False)
 		if emojistr == None or len(emojistr) < 1024:
-			embed.add_field(name = f"Emojis[{num2}]", value = f"{emojistr}", inline = False)
+			embed.add_field(name = f"Emojis[{ecount}]", value = f"{emojistr}", inline = False)
 		else:
-			embed.add_field(name = f"Emojis[{num2}]", value = "Use `h!emojilist` for getting a list of emojis on this server", inline = False)
+			embed.add_field(name = f"Emojis[{ecount}]", value = "Use `h!emojilist` for getting a list of emojis on this server", inline = False)
 		embed.set_footer(text = f"ID: {ctx.guild.id}")
 		await ctx.channel.send(embed = embed)
 
 	@commands.command()
+	@commands.guild_only()
 	async def roles(self, ctx):
 		'''Returns a list of roles'''
 		l = []
