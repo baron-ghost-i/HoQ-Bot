@@ -136,9 +136,9 @@ class Autoresponder(commands.Cog):
 			return await interaction.response.send_message("No trigger available under this category", ephemeral =  True)	
 		
 		view = discord.ui.View(timeout=60.0)
-		view.add_item(SelectMenu(bot = self.bot, gid = ID, type=type.value, user=self.interaction.user))
-		view.add_item(CancelButton(user = self.interaction.user))
-		await self.interaction.response.send_message("Select the autoresponse to remove", view = view)
+		view.add_item(SelectMenu(bot = self.bot, gid = ID, type=type.value, user=interaction.user))
+		view.add_item(CancelButton(user = interaction.user))
+		await interaction.response.send_message("Select the autoresponse to remove", view = view)
 			
 	@commands.command(aliases = ('responses', 'resps'))
 	@commands.guild_only()
