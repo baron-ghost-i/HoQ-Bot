@@ -80,11 +80,7 @@ class GoogleView(discord.ui.View):
 class Utils(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.key1 = os.getenv("GoogleAPIKey1")
-		self.key2 = os.getenv("GoogleAPIKey2")
-		self.key3 = os.getenv("GoogleAPIKey3")
-		self.key4 = os.getenv("GoogleAPIKey4")
-		self.key5 = os.getenv("GoogleAPIKey5")
+		self.keys = [os.getenv(f"GoogleAPIKey{i}") for i in range(1,6)]
 		self.cache = {}
 		self.cache2 = {}
 
@@ -103,10 +99,9 @@ class Utils(commands.Cog):
 				param = ""
 			else:
 				param = "&fileType=gif"
-			basestring = f"https://www.googleapis.com/customsearch/v1?key={self.key1}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start="
-			searchstrings = [basestring+str(i) for i in range(1,42,10)]
+			queries = [f"https://www.googleapis.com/customsearch/v1?key={i}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start={(self.keys.index(i)*10)+1}" for i in self.keys]
 			images = []
-			for q in searchstrings:
+			for q in queries:
 				async with self.bot.session.get(q) as res:
 					try:
 						stat = res.status
