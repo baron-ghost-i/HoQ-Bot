@@ -30,7 +30,7 @@ class TTTButton(discord.ui.Button):
 			content = f"{view.p2.mention}'s turn to play"
 
 		winner = view.winner()
-		if winner is not None:
+		if winner != None:
 			if winner == view.p1:
 				content = f"{view.p1.mention} won!"
 			elif winner == view.p2:
@@ -40,7 +40,7 @@ class TTTButton(discord.ui.Button):
 			for child in view.children:
 				child.disabled = True
 			view.stop()
-		await interaction.message.edit(content = content, view = view)
+		await interaction.response.edit_message(content = content, view = view)
 
 class TTTView(discord.ui.View):
 	def __init__(self, p1: discord.Member, p2: discord.Member):
@@ -48,9 +48,11 @@ class TTTView(discord.ui.View):
 		self.p1 = p1
 		self.p2 = p2
 		self.currentplayer = self.p2
-		self.board = [[0, 0, 0],
-									[0, 0, 0],
-									[0, 0, 0]]
+		self.board = [
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]
+			]
 		
 		for y in range(0, 3):
 			for x in range(0, 3):

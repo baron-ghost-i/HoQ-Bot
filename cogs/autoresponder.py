@@ -18,8 +18,7 @@ class SelectMenu(discord.ui.Select):
 		self._user = user
 		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
-		self._type = type
-		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': self._type})]
+		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': type})]
 		
 		for i in data:
 			opts.append(discord.SelectOption(label = i["trigger"]))
@@ -42,7 +41,7 @@ class SelectMenu(discord.ui.Select):
 		for i in self.view.children:
 			i.disabled = True
 		self.placeholder = "This select menu has already been used"
-		await interaction.message.edit(view = self.view)
+		await interaction.response.edit_message(view = self.view)
 		self.view.stop()
 
 

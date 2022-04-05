@@ -21,7 +21,7 @@ class GoogleView(discord.ui.View):
 		return interaction.user == self.user
 
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❮")
-	async def previous(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.count != 0:
 			self.count -= 1
 		else:
@@ -37,7 +37,7 @@ class GoogleView(discord.ui.View):
 		await interaction.response.edit_message(embed = embed)
 	
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯")
-	async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.count != 49:
 			self.count += 1
 		else:
@@ -53,7 +53,7 @@ class GoogleView(discord.ui.View):
 		await interaction.response.edit_message(embed = embed)
 		
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯❯")
-	async def jump(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def jump(self, interaction: discord.Interaction, button: discord.ui.Button):
 		def check(message):
 			return message.content.isdigit() == True and 0 <= int(message.content) <= 50 and message.author == self.user
 		await interaction.response.send_message(content = "Which page would you like to go to?")
@@ -68,12 +68,12 @@ class GoogleView(discord.ui.View):
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
 			embed.set_author(name = self.user, icon_url = self.user.avatar.url)
 			await asyncio.sleep(0.25)
-			await interaction.message.edit(embed = embed)
+			await interaction.response.edit_message(embed = embed)
 		else:
-			await interaction.message.edit(content = "Invalid input provided")
+			await interaction.response.edit_message(content = "Invalid input provided")
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
-	async def end(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await interaction.response.edit_message(view = None)
 		self.stop()
 
@@ -175,7 +175,7 @@ class Utils(commands.Cog):
 		while True:
 			result = await view.wait()
 			if result:
-				await interaction.edit_original_message(view = None)
+				await interaction.response.edit_message(view = None)
 				break
 			elif not result:
 				break
@@ -188,7 +188,7 @@ class Utils(commands.Cog):
 		while True:
 			result = await view.wait()
 			if result:
-				await interaction.edit_original_message(view = None)
+				await interaction.response.edit_message(view = None)
 				break
 			elif not result:
 				break
