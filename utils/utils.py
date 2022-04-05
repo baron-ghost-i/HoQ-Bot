@@ -24,29 +24,29 @@ class PaginatorView(discord.ui.View):
 		return resplist
 
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❮")
-	async def previous(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.count > 0:
 			self.count -= 1
 			embed = discord.Embed(description = self.list[self.count], timestamp = datetime.datetime.now(datetime.timezone.utc))
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.list)}")
-			await interaction.message.edit(embed = embed)
+			await interaction.response.edit_message(embed = embed)
 		else:
 			return
 	
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯")
-	async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.count < len(self.list)-1:
 			self.count += 1
 			embed = discord.Embed(description = self.list[self.count], timestamp = datetime.datetime.now(datetime.timezone.utc))
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.list)}")
-			await interaction.message.edit(embed = embed)
+			await interaction.response.edit_message(embed = embed)
 		else:
 			return
 	
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
-	async def end(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.stop()
-		await interaction.message.edit(view = None)
+		await interaction.response.edit_message(view = None)
 
 class CancelButton(discord.ui.Button):
 	def __init__(self, user):
@@ -60,7 +60,7 @@ class CancelButton(discord.ui.Button):
 			i.disabled = True
 			if isinstance(i, discord.ui.Select):
 				i.placeholder = "Command cancelled"
-		await interaction.message.edit(view = self.view)
+		await interaction.response.edit_message(view = self.view)
 
 def admincheck():
 		async def predicate(ctx):
