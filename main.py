@@ -23,6 +23,7 @@ class HoQBot(commands.Bot):
 		for i in os.scandir(path = "cogs"):
 			if i.name.endswith(".py"):
 				await self.load_extension(f"cogs.{i.name[:-3]}")
+		self.tree.on_error = self.cogs['ErrorHandler'].app_command_error_handler
 		
 	async def on_ready(self):
 		c = self.get_channel(850039242481991703)
