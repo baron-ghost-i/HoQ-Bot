@@ -3,18 +3,11 @@ import asyncio
 import datetime
 from discord import app_commands
 from discord.ext import commands
-
-from utils.utils import ownercheck_interaction
+from utils.utils import *
 
 class Moderation(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-
-	def guild_check(ctx):
-		if ctx.guild.id == 612234021388156938:
-			return True 
-		else:
-			raise commands.CheckFailure("Cannot use this command on this guild!")
 	
 	def guildcheck(ctx):
 		if ctx.guild.id in (850039242481991700, 808257138882641960, 839939906558361627, 786520972064587786):
@@ -156,10 +149,8 @@ class Moderation(commands.Cog):
 		minutes='Number of minutes to mute user for',
 		seconds='Number of seconds to mute user for',
 		reason='Reason for muting user')
+	@app_commands.check(moderatorcheck)
 	async def mute(self, interaction: discord.Interaction, member: discord.Member, days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0, reason: str = None):
-		if not (interaction.user.guild_permissions.moderate_members or ownercheck_interaction(interaction)):
-			return await interaction.response.send_message('You do not have the permission to use this command', ephemeral = True)
-
 		if member.guild_permissions.administrator:
 			return await interaction.response.send_message('Cannot mute this member!', ephemeral = True)
 			

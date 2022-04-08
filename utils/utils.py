@@ -1,6 +1,7 @@
 import discord
 import datetime
 from discord.ext import commands
+from typing import Union
 
 class PaginatorView(discord.ui.View):
 	'''Creates a paginator for large embeds'''
@@ -62,22 +63,40 @@ class CancelButton(discord.ui.Button):
 				i.placeholder = "Command cancelled"
 		await interaction.response.edit_message(view = self.view)
 
-def admincheck():
-		async def predicate(ctx):
-			if ctx.guild is None:
-				raise commands.CheckFailure(message = "This command can be used on a guild only!")
-			if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
-				raise commands.CheckFailure("You don't have the permission to use this command!")
-			return True
-		return commands.check(predicate)
+def admincheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
+	if isinstance(ctx, commands.Context):
+		if ctx.guild == None:
+			raise commands.CheckFailure(message = "This command can be used on a guild only!")
+		if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
+			raise commands.CheckFailure("You don't have the permission to use this command!")
+	
+	else:
+		if ctx.guild == None:
+			raise discord.app_commands.CheckFailure(message = "This command can be used on a guild only!")
+		if not (ctx.user.guild_permissions.administrator or ctx.user.id == 586088176037265408):
+			raise discord.app_commands.CheckFailure("You don't have the permission to use this command!")
+	return True
 
-def ownercheck():
-	async def predicate(ctx):
-		return ctx.author.id == 586088176037265408
-	return commands.check(predicate)
+def moderatorcheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
+	if isinstance(ctx, commands.Context):
+		if ctx.guild == None:
+			raise commands.CheckFailure(message = "This command can be used on a guild only!")
+		if not (ctx.author.guild_permissions.manage_messages or ctx.author.id == 586088176037265408):
+			raise commands.CheckFailure("You don't have the permission to use this command!")
+	
+	else:
+		if ctx.guild == None:
+			raise discord.app_commands.CheckFailure(message = "This command can be used on a guild only!")
+		if not (ctx.user.guild_permissions.manage_messages or ctx.user.id == 586088176037265408):
+			raise discord.app_commands.CheckFailure("You don't have the permission to use this command!")
+	return True
 
-def ownercheck_interaction(interaction: discord.Interaction):
-	return interaction.user.id == 586088176037265408
+def ownercheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
+	if isinstance(ctx, commands.Context):
+		user = ctx.author
+	else:
+		user = ctx.user
+	return user.id == 586088176037265408
 
 def guildid(id: int) -> int:
 	if id in [850039242481991700,808257138882641960, 839939906558361627, 786520972064587786]:

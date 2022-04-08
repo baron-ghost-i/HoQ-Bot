@@ -9,8 +9,6 @@ from discord.ext import commands
 from typing import Union
 from utils.utils import *
 
-
-
 class SelectMenu(discord.ui.Select):
 	def __init__(self, bot, gid: int, type: str, user):
 		opts = []
@@ -44,15 +42,13 @@ class SelectMenu(discord.ui.Select):
 		await interaction.response.edit_message(view = self.view)
 		self.view.stop()
 
-
-
 class Autoresponder(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
 	@commands.command(aliases = ('addresp',))
 	@commands.guild_only()
-	@admincheck()
+	@commands.check(admincheck)
 	async def addresponse(self, ctx: commands.Context, trigger, response: Union[discord.Emoji, str], type = "normal"):
 		
 		if isinstance(response, discord.Emoji):
@@ -81,8 +77,9 @@ class Autoresponder(commands.Cog):
 
 	@app_commands.command(name="addresponse", description="Adds a trigger-response pair to the autoresponder")
 	@app_commands.describe(trigger='The trigger for the autoresponder', response='The response to the trigger', type='The type of the trigger(defaults to normal)')
+	@app_commands.check(admincheck)
 	async def _addresponse(self, interaction: discord.Interaction, trigger: str, response: str, type: Types = Types.normal):
-		
+
 		if any(["__" in response, "lambda" in response]):
 			return await interaction.response.send_message("Cannot add that autoresponse!", ephemeral = True)
 		if (not any([response.startswith('<:'), response.startswith('<a:')]) and re.sub('[.,;?!/\-\'\"]', '', response).isalnum()) and type.value == 'reaction':
@@ -106,7 +103,7 @@ class Autoresponder(commands.Cog):
 			
 	@commands.command(aliases = ('removeresp',))
 	@commands.guild_only()
-	@admincheck()
+	@commands.check(admincheck)
 	async def removeresponse(self, ctx, *, trigger):
 		id = guildid(ctx.guild.id)
 		out = self.bot.db['autoresponder'].find_one_and_delete({
@@ -124,8 +121,9 @@ class Autoresponder(commands.Cog):
 
 	@app_commands.command(name='removeresponse', description='Removes a trigger-response pair from the autoresponder')
 	@app_commands.describe(type='Select the type of reaction to be removed')
+	@app_commands.check(admincheck)
 	async def _removeresponse(self, interaction, type: Types):
-		if not (interaction.user.guild_permissions.administrator or ownercheck_interaction(interaction)):
+		if not (interaction.user.guild_permissions.administrator):
 			await interaction.response.send_message("You do not have the permission to use this command!", ephemeral = True)
 			return
 			
@@ -178,7 +176,6 @@ class Autoresponder(commands.Cog):
 				
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		
 		if message.guild == None:
 			return
 			

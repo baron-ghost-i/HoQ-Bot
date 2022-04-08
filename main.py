@@ -52,46 +52,8 @@ class HoQBot(commands.Bot):
 			self.db["Guild settings"].delete_one({"_id": id})
 		except:
 			pass
-
-	async def on_command_error(self, ctx, error):
-		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.reply(embed = discord.Embed(description = f"Missing argument: {error.param.name}", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.CommandInvokeError):
-			err = error.original
-			if isinstance(err, discord.HTTPException):
-				await ctx.reply(embed = discord.Embed(description = f"{err.status}: {err.text}", color = discord.Color.red()))
-			else:
-				user = self.get_user(586088176037265408)
-				await user.send(str(err))
-		
-		elif isinstance(error, commands.PrivateMessageOnly):
-			await ctx.reply(embed = discord.Embed(description = "Use this command in DMs!", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.CommandOnCooldown):
-			await ctx.reply(embed = discord.Embed(description = f"Command is on cooldown! Try again after {round(error.retry_after, 2)} seconds", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.NotOwner) or isinstance(error, commands.MissingPermissions):
-			await ctx.reply(embed = discord.Embed(description = "You do not have the permission to use this command!", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.CommandNotFound):
-			pass
-		
-		elif isinstance(error, commands.BadUnionArgument):
-			await ctx.reply(embed = discord.Embed(description = "Error: conversion failed, please check the input provided.", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.UserInputError):
-			await ctx.reply(embed = discord.Embed(description = f"Input error: {error}", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.UserNotFound):
-			await ctx.reply(embed = discord.Embed(description = "Error: User not found", color = discord.Color.red()))
-		
-		elif isinstance(error, commands.CheckFailure):
-			await ctx.reply(embed = discord.Embed(description = f"{error}", color = discord.Color.red()))
 			
 bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
-
-
 
 def isme(ctx):
 		return ctx.author.id == 586088176037265408

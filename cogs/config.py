@@ -10,7 +10,7 @@ class Configuration(commands.Cog):
 		self.bot = bot
 
 	@commands.group(invoke_without_command = True)
-	@admincheck()
+	@commands.check(admincheck)
 	async def dadmode(self, ctx):
 		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["dadmode"]
 		await ctx.send(f'''Dad mode is currently **{_dict[state]}**.
@@ -31,7 +31,7 @@ More commands:
 		await ctx.send("Disabled dad mode!")
 
 	@commands.group(invoke_without_command = True)
-	@admincheck()
+	@commands.check(admincheck)
 	async def autoresponder(self, ctx):
 		state = self.bot.db["Guild settings"].find_one({"_id": guildid(ctx.guild.id)})["autoresponder"]
 		await ctx.send(f'''Autoresponder is currently **{_dict[state]}**.
@@ -52,7 +52,7 @@ More commands:
 		await ctx.send("Autoresponder disabled!")
 
 	@commands.command()
-	@admincheck()
+	@commands.check(admincheck)
 	async def defaultrole(self, ctx, role: Union[discord.Role, int, str]):
 		if ctx.channel.type == discord.ChannelType.private:
 			pass
