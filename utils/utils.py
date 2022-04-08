@@ -67,13 +67,13 @@ def admincheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
 	if isinstance(ctx, commands.Context):
 		if ctx.guild == None:
 			raise commands.CheckFailure(message = "This command can be used on a guild only!")
-		if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408):
+		if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408 or ctx.guild.owner==ctx.author):
 			raise commands.CheckFailure("You don't have the permission to use this command!")
 	
 	else:
 		if ctx.guild == None:
 			raise discord.app_commands.CheckFailure(message = "This command can be used on a guild only!")
-		if not (ctx.user.guild_permissions.administrator or ctx.user.id == 586088176037265408):
+		if not (ctx.user.guild_permissions.administrator or ctx.user.id == 586088176037265408 or ctx.guild.owner==ctx.user):
 			raise discord.app_commands.CheckFailure("You don't have the permission to use this command!")
 	return True
 
