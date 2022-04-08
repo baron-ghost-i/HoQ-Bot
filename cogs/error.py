@@ -13,7 +13,7 @@ class ErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        user = self.get_user(586088176037265408)
+        user = self.bot.get_user(586088176037265408)
 
         if isinstance(error, commands.CommandNotFound):
             pass
