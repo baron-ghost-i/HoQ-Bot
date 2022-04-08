@@ -5,7 +5,7 @@ from typing import Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from discord import Interaction
-    from discord.app_commands import Command, Group, AppCommandError
+    from discord.app_commands import Command, Group, AppCommandError, CommandInvokeError
 
 class ErrorHandler(commands.Cog):
     def __init__(self, bot):
@@ -56,6 +56,11 @@ class ErrorHandler(commands.Cog):
     async def app_command_error_handler(interaction: 'Interaction', command: Union['Command', 'Group'], error: 'AppCommandError'):
         if isinstance(error, CheckFailure):
             await interaction.response.send_message('You don\'t have the permission to use this command!', ephemeral=True)
+        else:
+            user = interaction.client.get_user(586088176037265408)
+            if isinstance(error, CommandInvokeError):
+                error = error.original
+            await user.send(str(error))
 
 async def setup(bot):
     await bot.add_cog(ErrorHandler(bot))
