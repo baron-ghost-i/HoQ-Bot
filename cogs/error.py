@@ -60,6 +60,7 @@ class ErrorHandler(commands.Cog):
             user = interaction.client.get_user(586088176037265408)
             if isinstance(error, CommandInvokeError):
                 error = error.original
+            await interaction.response.send_message("An unexpected error occurred!")
             await user.send(str(error))
 
 async def setup(bot):
