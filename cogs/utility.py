@@ -7,7 +7,7 @@ import re
 import datetime
 from discord.ext import commands
 from discord import app_commands
-from utils.utils import ownercheck
+from utils.utils import ownercheck, isme
 		
 class GoogleView(discord.ui.View):
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
@@ -187,6 +187,13 @@ class Utils(commands.Cog):
 				break
 			elif not result:
 				break
+
+	@commands.command()
+	@commands.check(isme)
+	async def clear_cache(self, ctx):
+		self.cache.clear()
+		self.cache2.clear()
+		await ctx.send('Cleared image caches!')
 		
 	@commands.command()
 	async def poll(self, ctx, *args):

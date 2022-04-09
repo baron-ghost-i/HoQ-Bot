@@ -102,3 +102,9 @@ def guildid(id: int) -> int:
 	if id in [850039242481991700,808257138882641960, 839939906558361627, 786520972064587786]:
 		return 612234021388156938
 	return id
+
+def isme(ctx: Union[commands.Context, discord.Interaction]) -> bool:
+	if isinstance(ctx, commands.Context):
+		return ctx.author.id == 586088176037265408
+	else:
+		return ctx.user.id == 586088176037265408

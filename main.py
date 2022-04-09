@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import pymongo
 from discord.ext import commands
-from utils.utils import guildid
+from utils.utils import guildid, isme
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
@@ -55,9 +55,6 @@ class HoQBot(commands.Bot):
 			pass
 			
 bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
-
-def isme(ctx):
-		return ctx.author.id == 586088176037265408
 
 @bot.command()
 @commands.check(isme)
