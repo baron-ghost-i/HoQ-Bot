@@ -36,11 +36,11 @@ class SelectMenu(discord.ui.Select):
 		})
 
 		await interaction.response.send_message("Trigger removed!")
+		self.placeholder = "This select menu has already been used"
 		for i in self.view.children:
 			i.disabled = True
-		self.placeholder = "This select menu has already been used"
-		await interaction.response.edit_message(view = self.view)
 		self.view.stop()
+		await interaction.message.edit(view = self.view)
 
 class Autoresponder(commands.Cog):
 	def __init__(self, bot):
