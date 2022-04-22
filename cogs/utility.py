@@ -68,9 +68,9 @@ class GoogleView(discord.ui.View):
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
 			embed.set_author(name = self.user, icon_url = self.user.avatar.url)
 			await asyncio.sleep(0.25)
-			await interaction.response.edit_message(embed = embed)
+			await interaction.edit_original_message(embed=embed)
 		else:
-			await interaction.response.edit_message(content = "Invalid input provided")
+			await interaction.edit_original_message(content = "Invalid input provided")
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
 	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -99,7 +99,7 @@ class Utils(commands.Cog):
 				param = ""
 			else:
 				param = "&fileType=gif"
-			queries = [f"https://www.googleapis.com/customsearch/v1?key={i}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start={(self.keys.index(i)*10)+1}" for i in self.keys]
+			queries = [f"https://www.googleapis.com/customsearch/v1?key={i}&cx=113278b73f24404b1&q={query}&searchType=image{param}&fileType=jpg-png&start={(self.keys.index(i)*10)+1}" for i in self.keys]
 			images = []
 			for q in queries:
 				async with self.bot.session.get(q) as res:
@@ -109,7 +109,7 @@ class Utils(commands.Cog):
 						content = json.loads(txt)
 						assert "items" in content.keys() and stat == 200
 						for i in content["items"]:
-							if i["fileFormat"] =="image/":
+							if i["fileFormat"] =="image/" and str(i['link']).count('url') != 1:
 								images.append((i["title"], i["image"]["contextLink"], i["image"]["thumbnailLink"]))
 							else:
 								images.append((i["title"], i["image"]["contextLink"], i["link"]))
