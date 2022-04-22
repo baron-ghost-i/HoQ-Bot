@@ -96,10 +96,10 @@ class Utils(commands.Cog):
 			return self.cache2[query]
 		else:
 			if gif == False:
-				param = ""
+				param = "&fileType=jpg-png"
 			else:
 				param = "&fileType=gif"
-			queries = [f"https://www.googleapis.com/customsearch/v1?key={i}&cx=113278b73f24404b1&q={query}&searchType=image{param}&fileType=jpg-png&start={(self.keys.index(i)*10)+1}" for i in self.keys]
+			queries = [f"https://www.googleapis.com/customsearch/v1?key={i}&cx=113278b73f24404b1&q={query}&searchType=image{param}&start={(self.keys.index(i)*10)+1}" for i in self.keys]
 			images = []
 			for q in queries:
 				async with self.bot.session.get(q) as res:
