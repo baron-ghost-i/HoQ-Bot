@@ -68,9 +68,9 @@ class GoogleView(discord.ui.View):
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
 			embed.set_author(name = self.user, icon_url = self.user.avatar.url)
 			await asyncio.sleep(0.25)
-			await interaction.edit_original_message(embed=embed)
+			await interaction.message.edit(embed=embed)
 		else:
-			await interaction.edit_original_message(content = "Invalid input provided")
+			await interaction.message.edit(content = "Invalid input provided")
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
 	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -109,7 +109,7 @@ class Utils(commands.Cog):
 						content = json.loads(txt)
 						assert "items" in content.keys() and stat == 200
 						for i in content["items"]:
-							if i["fileFormat"] =="image/" and str(i['link']).count('url') != 1:
+							if i["fileFormat"] == "image/":
 								images.append((i["title"], i["image"]["contextLink"], i["image"]["thumbnailLink"]))
 							else:
 								images.append((i["title"], i["image"]["contextLink"], i["link"]))
@@ -127,7 +127,7 @@ class Utils(commands.Cog):
 		resp = await self._image(search, gif)
 		link = resp[0][2]
 		if "(" in link and ")" in link:
-			link = link.replace("(", "\(").replace(")", "\)")
+			link = link.replace("(", "%28").replace(")", "%29")
 		embed = discord.Embed(title = resp[0][0], url = resp[0][1], description = f"[Image URL]({link})", color = 0x00FF77, timestamp = datetime.datetime.now(datetime.timezone.utc))
 		embed.set_image(url = resp[0][2])
 		embed.set_author(name = user, icon_url = user.avatar.url)
