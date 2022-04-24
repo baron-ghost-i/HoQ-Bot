@@ -2,6 +2,10 @@ import discord
 import inspect
 import typing
 import datetime
+import cairosvg
+
+from io import BytesIO
+from PIL import Image
 from discord.ext import commands
 from utils.utils import PaginatorView
 
@@ -32,12 +36,14 @@ class Emojis(commands.Cog):
 			await ctx.channel.send("No emoji on this server")
 			
 	@commands.command(aliases = ("e",))
-	async def enlarge(self, ctx, emoji: typing.Union[discord.PartialEmoji, str]):
+	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
 			'''Returns the image for an emoji'''
 			embd = discord.Embed(timestamp = datetime.datetime.now())
 			if type(emoji) != str:
 				url = emoji.url
+				name = emoji.name
 			else:
+				name = "emoji"
 				emote = emoji.encode("unicode_escape").decode()
 				u = "\\U000"
 				if not emote.startswith("\\u"):
@@ -62,18 +68,29 @@ class Emojis(commands.Cog):
 						emote = emote.replace("\\ufe0f", "")
 					emote = emote.replace("\\u", "", 1)
 				emote = emote.replace("\\u", "-")
-				url = f"https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/{emote}.png"
+				url = f"https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/{emote}.svg"
 			try:
 				async with self.bot.session.get(url) as req:
 					stat = req.status
+					data = await req.read()
 				assert stat == 200
 			except AssertionError:
 				raise discord.HTTPException(req, "Emoji not found")
 			except:
 				raise
 			else:
-				embd.set_image(url = url)
-				await ctx.channel.send(embed = embd)
+				fp = BytesIO()
+				if "twemoji" in url:
+					data = data.replace(b'<svg ', b'<svg width="512px" height="512px" ')
+					cairosvg.svg2png(file_obj=BytesIO(data), write_to=fp)
+				else:
+					original = Image.open(BytesIO(data))
+					final = original.resize((512, original.height*512//original.width), resample=Image.Resampling(1))
+					final.save(fp, format='PNG')
+				fp.seek(0)
+				file = discord.File(fp, filename = f"{name}.png")
+				embd.set_image(url = f"attachment://{name}.png")
+				await ctx.channel.send(embed=embd, file=file)
 
 	@commands.command(aliases = ("e2",))
 	async def enlarge_from_name(self, ctx, *, name: str):
@@ -87,8 +104,15 @@ class Emojis(commands.Cog):
 			raise
 		else:
 			embed = discord.Embed(timestamp = discord.utils.utcnow())
-			embed.set_image(url = emoji.url)
-			await ctx.send(embed = embed)
+			async with self.bot.session.get(emoji.url) as response:
+				data = BytesIO(await response.read())
+			fp = BytesIO()
+			original = Image.open(data)
+			final = original.resize((512, original.height*512//original.width), Image.Resampling(1))
+			final.save(fp, format='PNG')
+			file = discord.File(fp, filename=f'{name}.png')
+			embed.set_image(url = f"attachment://{name}.png")
+			await ctx.send(embed = embed, file = file)
 
 	@commands.command(aliases = ("addemoji", "addem"))
 	@commands.has_permissions(manage_emojis = True)
