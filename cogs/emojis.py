@@ -7,7 +7,6 @@ import cairosvg
 from io import BytesIO
 from PIL import Image
 from discord.ext import commands
-from numpy import isin
 from utils.utils import PaginatorView
 
 class Emojis(commands.Cog):
