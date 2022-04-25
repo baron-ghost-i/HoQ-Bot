@@ -95,7 +95,7 @@ class Emojis(commands.Cog):
 	@commands.command(aliases = ("e2",))
 	async def enlarge_from_name(self, ctx, *, name: str):
 		name = name.replace(" ", "_")
-		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), ctx.guild.emojis)
+		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), self.bot.emojis)
 		try:
 			assert emoji != None
 		except AssertionError:
@@ -110,6 +110,7 @@ class Emojis(commands.Cog):
 			original = Image.open(data)
 			final = original.resize((512, original.height*512//original.width), Image.Resampling(1))
 			final.save(fp, format='PNG')
+			fp.seek(0)
 			file = discord.File(fp, filename=f'{name}.png')
 			embed.set_image(url = f"attachment://{name}.png")
 			await ctx.send(embed = embed, file = file)
