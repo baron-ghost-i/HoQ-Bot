@@ -7,6 +7,7 @@ import cairosvg
 from io import BytesIO
 from PIL import Image
 from discord.ext import commands
+from numpy import isin
 from utils.utils import PaginatorView
 
 class Emojis(commands.Cog):
@@ -39,7 +40,10 @@ class Emojis(commands.Cog):
 	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
 			'''Returns the image for an emoji'''
 			embd = discord.Embed(timestamp = datetime.datetime.now())
-			if type(emoji) != str:
+			if not isinstance(emoji, str):
+				if emoji.animated:
+					embd.set_image(url=emoji.url)
+					return await ctx.send(embed=embd)
 				url = emoji.url
 				name = emoji.name
 			else:
@@ -95,6 +99,7 @@ class Emojis(commands.Cog):
 	@commands.command(aliases = ("e2",))
 	async def enlarge_from_name(self, ctx, *, name: str):
 		name = name.replace(" ", "_")
+		embed = discord.Embed(timestamp = discord.utils.utcnow())
 		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), self.bot.emojis)
 		try:
 			assert emoji != None
@@ -103,7 +108,9 @@ class Emojis(commands.Cog):
 		except:
 			raise
 		else:
-			embed = discord.Embed(timestamp = discord.utils.utcnow())
+			if emoji.animated:
+				embed.set_image(url=emoji.url)
+				return await ctx.send(embed=embed)
 			async with self.bot.session.get(emoji.url) as response:
 				data = BytesIO(await response.read())
 			fp = BytesIO()

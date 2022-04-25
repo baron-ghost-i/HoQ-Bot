@@ -53,14 +53,14 @@ class ErrorHandler(commands.Cog):
             user.send(str(error))
 
     @staticmethod
-    async def app_command_error_handler(interaction: 'Interaction', command: Union['Command', 'Group'], error: 'AppCommandError'):
+    async def app_command_error_handler(interaction: 'Interaction', error: 'AppCommandError'):
         if isinstance(error, CheckFailure):
             await interaction.response.send_message('You don\'t have the permission to use this command!', ephemeral=True)
         else:
             user = interaction.client.get_user(586088176037265408)
             if isinstance(error, CommandInvokeError):
                 error = error.original
-            await interaction.response.send_message("An unexpected error occurred!")
+            await interaction.response.send_message("An unexpected error occurred!", ephemeral = True)
             await user.send(str(error))
 
 async def setup(bot):
