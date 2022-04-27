@@ -108,3 +108,7 @@ def isme(ctx: Union[commands.Context, discord.Interaction]) -> bool:
 		return ctx.author.id == 586088176037265408
 	else:
 		return ctx.user.id == 586088176037265408
+
+def to_discord_timestamp(time: datetime.datetime) -> str:
+	'''Returns a string which Discord interprets as a timestamp object'''
+	return "<t:"+str(round(time.timestamp()))+">"

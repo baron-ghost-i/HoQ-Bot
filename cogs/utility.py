@@ -7,7 +7,7 @@ import re
 import datetime
 from discord.ext import commands
 from discord import app_commands
-from utils.utils import ownercheck, isme
+from utils.utils import ownercheck, isme, to_discord_timestamp
 		
 class GoogleView(discord.ui.View):
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
@@ -302,7 +302,7 @@ class Info(commands.Cog):
 				raise commands.UserNotFound("Couldn't find any user!")
 		
 		name = f"{user.name}#{user.discriminator}"
-		regdate = user.created_at.strftime("%A, %B %d, %Y, %H:%M UTC")
+		regdate = to_discord_timestamp(user.created_at)
 		ID = user.id
 		flags = user.public_flags.all()
 		if user.bot:
@@ -321,7 +321,7 @@ class Info(commands.Cog):
 		nick = None
 
 		if isinstance(user, discord.Member):
-			joindate = user.joined_at.strftime("%A, %B %d, %Y, %H:%M UTC")
+			joindate = to_discord_timestamp(user.joined_at)
 			rolelist = [i.mention for i in user.roles]
 			rolelist.pop(0)
 			rolelist.reverse()
@@ -338,8 +338,8 @@ class Info(commands.Cog):
 		embed.add_field(name = "Joined", value = joindate, inline = False)
 		embed.add_field(name = "Flags", value = flags, inline = False)
 		embed.add_field(name = f"Roles [{rolelength}]", value = roles, inline = False)
-		if user.timed_out_until != None:
-			embed.add_field(name='Timeout Expiration', value=user.timed_out_until.strftime("%d.%m.%Y, %H:%M:%S UTC"))
+		if user.is_timed_out():
+			embed.add_field(name='Timeout Expiration', value= to_discord_timestamp(user.timed_out_until))
 		if user.avatar != None:
 			embed.set_thumbnail(url = user.avatar.url)
 			embed.set_author(name = user, icon_url = user.avatar.url)
@@ -386,7 +386,7 @@ class Info(commands.Cog):
 			embed.set_thumbnail(url = ctx.guild.icon.url)
 		embed.add_field(name = "Name", value = f"{ctx.guild.name}", inline = True)
 		embed.add_field(name = "Owner", value = f"{ctx.guild.owner}", inline = True)
-		embed.add_field(name = "Created on", value = "{}".format(ctx.guild.created_at.strftime("%A, %B %d, %Y, %H:%M UTC")), inline = False)
+		embed.add_field(name = "Created on", value = to_discord_timestamp(ctx.guild.created_at), inline = False)
 		embed.add_field(name=f"Channel count[{ccount}]", value=channelstr)
 		embed.add_field(name = "Preferred locale", value = f"{str(ctx.guild.preferred_locale).upper()}", inline = False)
 		embed.add_field(name = "Verification level", value = f"{str(ctx.guild.verification_level).capitalize()}", inline = False)
