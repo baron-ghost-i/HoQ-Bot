@@ -28,7 +28,7 @@ class PaginatorView(discord.ui.View):
 	async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.count > 0:
 			self.count -= 1
-			embed = discord.Embed(description = self.list[self.count], timestamp = datetime.datetime.now(datetime.timezone.utc))
+			embed = discord.Embed(description = self.list[self.count], timestamp = datetime.datetime.now())
 			embed.set_footer(text = f"Page {self.count+1} of {len(self.list)}")
 			await interaction.response.edit_message(embed = embed)
 		else:
