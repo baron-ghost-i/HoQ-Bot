@@ -34,9 +34,9 @@ class Emojis(commands.Cog):
 				await ctx.send(embed = embed, view = view)
 		else:
 			await ctx.channel.send("No emoji on this server")
-			
+
 	@commands.command(aliases = ("e",))
-	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
+	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str], size:int = 512):
 			'''Returns the image for an emoji'''
 			embd = discord.Embed(timestamp = datetime.datetime.now())
 			if not isinstance(emoji, str):
@@ -88,7 +88,7 @@ class Emojis(commands.Cog):
 					cairosvg.svg2png(file_obj=BytesIO(data), write_to=fp)
 				else:
 					original = Image.open(BytesIO(data))
-					final = original.resize((512, original.height*512//original.width), resample=Image.Resampling(1))
+					final = original.resize((size, original.height*size//original.width), resample=Image.Resampling(1))
 					final.save(fp, format='PNG')
 				fp.seek(0)
 				file = discord.File(fp, filename = f"{name}.png")
