@@ -36,13 +36,13 @@ class Emojis(commands.Cog):
 			await ctx.channel.send("No emoji on this server")
 
 	@commands.command(aliases = ("e",))
-	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str], size:int = 512):
+	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str], size:int = 256):
 			'''Returns the image for an emoji'''
-			embd = discord.Embed(timestamp = datetime.datetime.now())
+			embed = discord.Embed(timestamp = datetime.datetime.now())
 			if not isinstance(emoji, str):
 				if emoji.animated:
-					embd.set_image(url=emoji.url)
-					return await ctx.send(embed=embd)
+					embed.set_image(url=emoji.url)
+					return await ctx.send(embed=embed)
 				url = emoji.url
 				name = emoji.name
 			else:
@@ -84,19 +84,22 @@ class Emojis(commands.Cog):
 			else:
 				fp = BytesIO()
 				if "twemoji" in url:
-					data = data.replace(b'<svg ', b'<svg width="512px" height="512px" ')
+					data = data.replace(b'<svg ', bytes(f'<svg width="{size}px" height="{size}px" ', 'utf-8'))
 					cairosvg.svg2png(file_obj=BytesIO(data), write_to=fp)
+					dim = (size, size)
 				else:
 					original = Image.open(BytesIO(data))
 					final = original.resize((size, original.height*size//original.width), resample=Image.Resampling(1))
 					final.save(fp, format='PNG')
+					dim = (final.width, final.height)
 				fp.seek(0)
 				file = discord.File(fp, filename = f"{name}.png")
-				embd.set_image(url = f"attachment://{name}.png")
-				await ctx.channel.send(embed=embd, file=file)
+				embed.set_image(url = f"attachment://{name}.png")
+				embed.set_footer(text=f'{dim[0]}×{dim[1]}')
+				await ctx.channel.send(embed=embed, file=file)
 
 	@commands.command(aliases = ("e2",))
-	async def enlarge_from_name(self, ctx, *, name: str):
+	async def enlarge_from_name(self, ctx, *, name: str, size: int = 256):
 		name = name.replace(" ", "_")
 		embed = discord.Embed(timestamp = discord.utils.utcnow())
 		emoji = discord.utils.find(lambda e: e.name.lower() ==  name.lower(), self.bot.emojis)
@@ -114,11 +117,13 @@ class Emojis(commands.Cog):
 				data = BytesIO(await response.read())
 			fp = BytesIO()
 			original = Image.open(data)
-			final = original.resize((512, original.height*512//original.width), Image.Resampling(1))
+			final = original.resize((size, original.height*size//original.width), Image.Resampling(1))
 			final.save(fp, format='PNG')
 			fp.seek(0)
+			dim = (final.width, final.height)
 			file = discord.File(fp, filename=f'{name}.png')
 			embed.set_image(url = f"attachment://{name}.png")
+			embed.set_footer(text=f"{dim[0]}×{dim[1]}")
 			await ctx.send(embed = embed, file = file)
 
 	@commands.command(aliases = ("addemoji", "addem"))

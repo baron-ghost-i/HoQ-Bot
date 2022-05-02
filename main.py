@@ -12,12 +12,11 @@ intents.members = True
 intents.typing = False
 intents.message_content = True
 
-class HoQBot(commands.Bot):
+class HoQBot2(commands.Bot):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.session = None
-		self.db = pymongo.MongoClient(os.getenv("mongourl"))["HoQ-Bot"]
-	
+		self.db = pymongo.MongoClient(os.getenv("mongoclient"))["HoQ-Bot-2"]
 	async def setup_hook(self):
 		self.session = aiohttp.ClientSession()
 		for i in os.scandir(path = "cogs"):
@@ -54,7 +53,7 @@ class HoQBot(commands.Bot):
 		except:
 			pass
 			
-bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
+bot = HoQBot2(command_prefix = ("hoq2 ", "Hoq2 ", "h..", "H.."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h.."),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
 
 @bot.command()
 @commands.check(isme)
