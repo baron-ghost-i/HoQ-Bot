@@ -126,7 +126,7 @@ class Misc(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 10, commands.BucketType.default)
-	async def xkcd(self, ctx, *, arg = None):
+	async def xkcd(self, ctx, *, arg = ''):
 		'''Shows an xkcd comic'''
 		url1 = "https://xkcd.com/info.0.json"
 		async with self.bot.session.get(url1) as req1:
