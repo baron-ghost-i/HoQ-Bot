@@ -11,7 +11,7 @@ from discord.ext import commands
 
 def create_Embed(title: str, image_link: str, num: int):
 	embed = discord.Embed(
-			title = title,
+			title = f"#{num} - {title}",
 			url =  f'https://xkcd.com/{num}',
 			color = 0x50C878,
 			timestamp = datetime.datetime.now()
