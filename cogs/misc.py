@@ -4,18 +4,15 @@ import json
 import random
 import asyncio
 import datetime
-from discord import ButtonStyle, app_commands
+
+from discord import app_commands
 from discord.ext import commands
-
-
-def xkcd_url(count: int) -> str:
-	return f'https://xkcd.com/{count}'
 
 
 def create_Embed(title: str, image_link: str, num: int):
 	embed = discord.Embed(
 			title = title,
-			url = xkcd_url(num),
+			url =  f'https://xkcd.com/{num}',
 			color = 0x50C878,
 			timestamp = datetime.datetime.now()
 			)
