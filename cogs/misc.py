@@ -31,7 +31,7 @@ async def parse_data(bot, num):
 	try:
 		assert request.status == 200
 	except AssertionError:
-		raise discord.HTTPException(request, message = 'Could not fetch data from xkcd.com')
+		raise discord.HTTPException(request, message = 'Could not fetch data from xkcd.com, please try again later!')
 	except:
 		raise
 	else:
@@ -135,8 +135,10 @@ class Misc(commands.Cog):
 		async with self.bot.session.get(url1) as req1:
 			stat1 = req1.status
 			data = json.loads(await req1.text())
-		assert stat1 == 200
 		lim = int(data["num"])
+
+		if stat1 != 200:
+			raise discord.HTTPException(req1, 'Could not fetch information from xkcd.com, please try again later!')
 
 		if arg.lower() == 'random':
 			num = random.randint(1, lim+1)
