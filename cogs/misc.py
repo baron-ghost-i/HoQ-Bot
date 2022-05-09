@@ -1,4 +1,3 @@
-from tkinter import E
 import discord
 import json
 import random
@@ -23,14 +22,17 @@ def create_Embed(title: str, image_link: str, num: int):
 
 
 async def parse_data(bot, num):
-	async with bot.session.get(f'https://xkcd.com/{num}/info.0.json') as request:
-		data = json.loads(await request.text())
 	try:
+		async with bot.session.get(f'https://xkcd.com/{num}/info.0.json') as request:
+			data = json.loads(await request.text())
 		assert request.status == 200
+
 	except AssertionError:
 		raise discord.HTTPException(request, message = 'Could not fetch data from xkcd.com, please try again later!')
+	
 	except:
 		raise
+	
 	else:
 		return data
 
@@ -53,7 +55,7 @@ class xkcdView(discord.ui.View):
 
 	@discord.ui.button(label="❮❮", style = discord.ButtonStyle.primary)
 	async def oldest(self, interaction: discord.Interaction, button: discord.ui.Button):
-		self.count = 0
+		self.count = 1
 		data = await parse_data(self.bot, self.count)
 		embed = create_Embed(data['title'], data['img'], self.count)
 		await interaction.response.edit_message(embed = embed)
@@ -92,14 +94,15 @@ class xkcdView(discord.ui.View):
 		embed = create_Embed(data['title'], data['img'], self.count)
 		await interaction.response.edit_message(embed = embed)
 
-	@discord.ui.button(label = '×', style = discord.ButtonStyle.danger)
+	@discord.ui.button(label = '✕', style = discord.ButtonStyle.danger)
 	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.stop()
 		await interaction.response.edit_message(view = None)
 
-	async def on_timeout(self) -> None:
+	async def on_timeout(self):
 		self.stop()
 		await self.message.edit(view = None)
+
 
 class Misc(commands.Cog):
 	def __init__(self, bot):
@@ -137,7 +140,10 @@ class Misc(commands.Cog):
 		if stat1 != 200:
 			raise discord.HTTPException(req1, 'Could not fetch information from xkcd.com, please try again later!')
 
-		if arg.lower() == 'random':
+		if arg == '' or arg == 'latest':
+			num = lim
+
+		elif arg.lower() == 'random':
 			num = random.randint(1, lim+1)
 			data = await parse_data(self.bot, num)
 
