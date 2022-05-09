@@ -4,11 +4,16 @@ import random
 import asyncio
 import datetime
 
+from typing import TYPE_CHECKING
+
 from discord import app_commands
 from discord.ext import commands
 
+if TYPE_CHECKING:
+	from main import HoQBot
 
-def create_Embed(title: str, image_link: str, num: int):
+
+def create_Embed(title: str, image_link: str, num: int) -> discord.Embed:
 	embed = discord.Embed(
 			title = f"#{num} - {title}",
 			url =  f'https://xkcd.com/{num}',
@@ -21,7 +26,7 @@ def create_Embed(title: str, image_link: str, num: int):
 	return embed
 
 
-async def parse_data(bot, num):
+async def parse_data(bot, num) -> dict:
 	try:
 		async with bot.session.get(f'https://xkcd.com/{num}/info.0.json') as request:
 			data = json.loads(await request.text())
@@ -38,7 +43,7 @@ async def parse_data(bot, num):
 
 
 class xkcdView(discord.ui.View):
-	def __init__(self, bot, count: int, max: int):
+	def __init__(self, bot: HoQBot, count: int, max: int):
 		super().__init__()
 		self.bot = bot
 		self.count: int = count
@@ -109,16 +114,16 @@ class Misc(commands.Cog):
 		self.bot = bot
 		
 	@commands.command()
-	async def ping(self, ctx):
+	async def ping(self, ctx: commands.Context):
 		ping = round(self.bot.latency*1000)
 		await ctx.channel.send(f"Ping: {ping} ms")
 
-	@app_commands.command(name='ping',description='Returns websocket latency (ping)')
+	@app_commands.command(name='ping', description='Returns websocket latency (ping)')
 	async def _ping(self, interaction: discord.Interaction):
 		await interaction.response.send_message(f'Ping: {round(self.bot.latency*1000)} ms')
 		
 	@commands.command()
-	async def invite(self, ctx):
+	async def invite(self, ctx: commands.Context):
 		'''For inviting the bot, or joining the HoQ-QFC Joint Server'''
 		embd = discord.Embed(color = 0x00d5ff)
 		embd.set_author(name = "HoQ Bot", icon_url = "https://media.discordapp.net/attachments/850039242481991703/850043262232559676/HoQ.png")
@@ -129,7 +134,7 @@ class Misc(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 10, commands.BucketType.default)
-	async def xkcd(self, ctx, *, arg = ''):
+	async def xkcd(self, ctx: commands.Context, *, arg: str = ''):
 		'''Shows an xkcd comic'''
 		url1 = "https://xkcd.com/info.0.json"
 		async with self.bot.session.get(url1) as req1:
@@ -158,7 +163,7 @@ class Misc(commands.Cog):
 	@commands.command()
 	@commands.dm_only()
 	@commands.cooldown(1, 10, commands.BucketType.user)
-	async def confess(self, ctx, *, msg):
+	async def confess(self, ctx: commands.Context, *, msg: discord.Message):
 		'''Sends anonymous messages to a specified channel on HoQ'''
 		try:
 			channel = self.bot.get_channel(849182001691885588)
