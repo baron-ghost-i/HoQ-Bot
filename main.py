@@ -29,7 +29,6 @@ class HoQBot(commands.Bot):
 		c = self.get_channel(850039242481991703)
 		await asyncio.sleep(5)
 		await c.send("Bot online")
-		await self.tree.sync()
 		for i in self.guilds:
 			try:
 				id = guildid(i.id)
@@ -71,6 +70,12 @@ async def reload(ctx, *, extension = None):
 		await ctx.send("Reloaded!")
 	except:
 		raise
+
+@bot.command()
+@commands.check(isme)
+async def sync(ctx: commands.Context):
+	await ctx.bot.tree.sync()
+	await ctx.send('Synced command tree successfully')
 
 @bot.command()
 @commands.check(isme)
