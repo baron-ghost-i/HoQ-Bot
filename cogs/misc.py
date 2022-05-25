@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 from discord.ext import commands
 
-if TYPE_CHECKING:
-	from main import HoQBot
-
 
 def create_Embed(title: str, image_link: str, num: int) -> discord.Embed:
 	embed = discord.Embed(
@@ -43,7 +40,7 @@ async def parse_data(bot, num) -> dict:
 
 
 class xkcdView(discord.ui.View):
-	def __init__(self, bot: HoQBot, count: int, max: int):
+	def __init__(self, bot, count: int, max: int):
 		super().__init__()
 		self.bot = bot
 		self.count: int = count
