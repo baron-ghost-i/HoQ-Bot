@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 from typing import Union
-from utils.utils import guildid, admincheck
+from utils.utils import guildid
+from utils.custom_checks import admincheck
 
 _dict = {True: "enabled", False: "disabled"}
 

@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 from typing import Union
 from utils.utils import *
+from utils.custom_checks import *
 
 class SelectMenu(discord.ui.Select):
 	def __init__(self, bot, gid: int, type: str, user):
