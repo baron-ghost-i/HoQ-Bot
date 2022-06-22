@@ -2,14 +2,14 @@ import discord
 from discord.ext import commands
 from typing import Union
 
-Context = Union[commands.Context, discord.Interaction]
-
 __all__ = [
 	'moderatorcheck',
 	'admincheck',
 	'ownercheck',
 	'isme'
 ]
+
+Context = Union[commands.Context, discord.Interaction]
 
 def moderatorcheck(ctx: Context) -> bool:
 	if isinstance(ctx, commands.Context):
