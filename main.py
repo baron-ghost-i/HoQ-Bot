@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import pymongo
 from discord.ext import commands
-from utils.utils import guildid, isme
+from utils import guildid, isme
 
 token = os.getenv('Token')
 intents = discord.Intents.default()
@@ -12,11 +12,12 @@ intents.members = True
 intents.typing = False
 intents.message_content = True
 
-class HoQBot2(commands.Bot):
+class HoQBot(commands.Bot):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.session = None
-		self.db = pymongo.MongoClient(os.getenv("mongoclient"))["HoQ-Bot-2"]
+		self.db = pymongo.MongoClient(os.getenv("mongourl"))["HoQ-Bot"]
+	
 	async def setup_hook(self):
 		self.session = aiohttp.ClientSession()
 		for i in os.scandir(path = "cogs"):
@@ -28,7 +29,6 @@ class HoQBot2(commands.Bot):
 		c = self.get_channel(850039242481991703)
 		await asyncio.sleep(5)
 		await c.send("Bot online")
-		await self.tree.sync()
 		for i in self.guilds:
 			try:
 				id = guildid(i.id)
@@ -53,7 +53,7 @@ class HoQBot2(commands.Bot):
 		except:
 			pass
 			
-bot = HoQBot2(command_prefix = ("hoq2 ", "Hoq2 ", "h..", "H.."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h.."),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
+bot = HoQBot(command_prefix = ("h!", "hoq ", "Hoq ", "h?", "h.", "H!", "H?", "H."), max_messages = 2048, activity = discord.Activity(type = discord.ActivityType.watching, name = "for h!"),  allowed_mentions = discord.AllowedMentions(replied_user = False), intents = intents)
 
 @bot.command()
 @commands.check(isme)
@@ -70,6 +70,12 @@ async def reload(ctx, *, extension = None):
 		await ctx.send("Reloaded!")
 	except:
 		raise
+
+@bot.command()
+@commands.check(isme)
+async def sync(ctx: commands.Context):
+	await ctx.bot.tree.sync()
+	await ctx.send('Synced command tree successfully')
 
 @bot.command()
 @commands.check(isme)
