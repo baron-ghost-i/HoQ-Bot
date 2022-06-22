@@ -1,18 +1,25 @@
 import discord
 import datetime
-from discord.ext import commands
+
 from typing import Union
+
+__all__ = [
+	'PaginatorView',
+	'CancelButton',
+	'guildid',
+	'to_discord_timestamp'
+]
 
 class PaginatorView(discord.ui.View):
 	'''Creates a paginator for large embeds'''
 
 	def __init__(self, input):
 		super().__init__(timeout = None)
-		self.input = input
-		self.list = self.splitter()
-		self.count = 0
+		self.input: str = input
+		self.list: list = self.splitter()
+		self.count: int = 0
 
-	def splitter(self):
+	def splitter(self) -> list:
 		resplist = []
 		index1 = 0
 		for i in range(len(self.input)//4096+1):
@@ -50,9 +57,11 @@ class PaginatorView(discord.ui.View):
 		await interaction.response.edit_message(view = None)
 
 class CancelButton(discord.ui.Button):
+	'''Defines the working of a generic cancel button'''
+	
 	def __init__(self, user):
-		self.user = user
 		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
+		self.user: Union[discord.Member, discord.User] = user
 	
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user != self.user:
@@ -63,51 +72,11 @@ class CancelButton(discord.ui.Button):
 				i.placeholder = "Command cancelled"
 		await interaction.response.edit_message(view = self.view)
 
-def admincheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
-	if isinstance(ctx, commands.Context):
-		if ctx.guild == None:
-			raise commands.CheckFailure("This command can be used on a guild only!")
-		if not (ctx.author.guild_permissions.administrator or ctx.author.id == 586088176037265408 or ctx.guild.owner==ctx.author):
-			raise commands.CheckFailure("You don't have the permission to use this command!")
-	
-	else:
-		if ctx.guild == None:
-			raise discord.app_commands.CheckFailure("This command can be used on a guild only!")
-		if not (ctx.user.guild_permissions.administrator or ctx.user.id == 586088176037265408 or ctx.guild.owner==ctx.user):
-			raise discord.app_commands.CheckFailure("You don't have the permission to use this command!")
-	return True
-
-def moderatorcheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
-	if isinstance(ctx, commands.Context):
-		if ctx.guild == None:
-			raise commands.CheckFailure("This command can be used on a guild only!")
-		if not (ctx.author.guild_permissions.manage_messages or ctx.author.id == 586088176037265408):
-			raise commands.CheckFailure("You don't have the permission to use this command!")
-	
-	else:
-		if ctx.guild == None:
-			raise discord.app_commands.CheckFailure("This command can be used on a guild only!")
-		if not (ctx.user.guild_permissions.manage_messages or ctx.user.id == 586088176037265408):
-			raise discord.app_commands.CheckFailure("You don't have the permission to use this command!")
-	return True
-
-def ownercheck(ctx: Union[commands.Context, discord.Interaction]) -> bool:
-	if isinstance(ctx, commands.Context):
-		user = ctx.author
-	else:
-		user = ctx.user
-	return user.id == 586088176037265408
-
 def guildid(id: int) -> int:
+	'''Mechanism for mapping guilds related to HoQ to HoQ, for synchronization'''
 	if id in [850039242481991700,808257138882641960, 839939906558361627, 786520972064587786]:
 		return 612234021388156938
 	return id
-
-def isme(ctx: Union[commands.Context, discord.Interaction]) -> bool:
-	if isinstance(ctx, commands.Context):
-		return ctx.author.id == 586088176037265408
-	else:
-		return ctx.user.id == 586088176037265408
 
 def to_discord_timestamp(time: datetime.datetime) -> str:
 	'''Returns a string which Discord interprets as a timestamp object'''
