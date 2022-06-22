@@ -5,9 +5,10 @@ import typing
 import json
 import re
 import datetime
-from discord.ext import commands
+
 from discord import app_commands
-from utils.utils import ownercheck, isme, to_discord_timestamp
+from discord.ext import commands
+from utils import isme, ownercheck, to_discord_timestamp
 		
 class GoogleView(discord.ui.View):
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):

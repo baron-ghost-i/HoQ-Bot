@@ -25,6 +25,7 @@ class ErrorHandler(commands.Cog):
             err = error.original
             if isinstance(err, HTTPException):
                 await ctx.reply(embed = Embed(description = f"{err.status}: {err.text}", color = Color.red()))
+                await user.send(str(await err.response.text()))
             else:
                 await user.send(str(err))
 		
