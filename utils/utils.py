@@ -1,6 +1,13 @@
 import discord
 import datetime
 
+__all__ = [
+	'PaginatorView',
+	'CancelButton',
+	'guildid',
+	'to_discord_timestamp'
+]
+
 class PaginatorView(discord.ui.View):
 	'''Creates a paginator for large embeds'''
 
@@ -48,6 +55,7 @@ class PaginatorView(discord.ui.View):
 		await interaction.response.edit_message(view = None)
 
 class CancelButton(discord.ui.Button):
+	'''Defines the working of a generic cancel button'''
 	def __init__(self, user):
 		self.user = user
 		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
@@ -62,6 +70,7 @@ class CancelButton(discord.ui.Button):
 		await interaction.response.edit_message(view = self.view)
 
 def guildid(id: int) -> int:
+	'''Mechanism for mapping guilds related to HoQ to HoQ, for synchronization'''
 	if id in [850039242481991700,808257138882641960, 839939906558361627, 786520972064587786]:
 		return 612234021388156938
 	return id

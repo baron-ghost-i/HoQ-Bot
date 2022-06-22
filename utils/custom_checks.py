@@ -4,6 +4,13 @@ from typing import Union
 
 Context = Union[commands.Context, discord.Interaction]
 
+__all__ = [
+	'moderatorcheck',
+	'admincheck',
+	'ownercheck',
+	'isme'
+]
+
 def moderatorcheck(ctx: Context) -> bool:
 	if isinstance(ctx, commands.Context):
 		if ctx.guild == None:

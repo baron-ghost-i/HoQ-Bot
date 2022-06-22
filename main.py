@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import pymongo
 from discord.ext import commands
-from utils.utils import guildid, isme
+from utils import guildid, isme
 
 token = os.getenv('Token')
 intents = discord.Intents.default()

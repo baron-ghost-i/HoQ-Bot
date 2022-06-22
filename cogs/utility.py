@@ -8,8 +8,7 @@ import datetime
 
 from discord import app_commands
 from discord.ext import commands
-from utils.custom_checks import isme, ownercheck
-from utils.utils import to_discord_timestamp
+from utils import isme, ownercheck, to_discord_timestamp
 		
 class GoogleView(discord.ui.View):
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
