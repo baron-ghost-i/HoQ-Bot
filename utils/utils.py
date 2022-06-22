@@ -1,6 +1,8 @@
 import discord
 import datetime
 
+from typing import Union
+
 __all__ = [
 	'PaginatorView',
 	'CancelButton',
@@ -13,11 +15,11 @@ class PaginatorView(discord.ui.View):
 
 	def __init__(self, input):
 		super().__init__(timeout = None)
-		self.input = input
-		self.list = self.splitter()
-		self.count = 0
+		self.input: str = input
+		self.list: list = self.splitter()
+		self.count: int = 0
 
-	def splitter(self):
+	def splitter(self) -> list:
 		resplist = []
 		index1 = 0
 		for i in range(len(self.input)//4096+1):
@@ -56,9 +58,10 @@ class PaginatorView(discord.ui.View):
 
 class CancelButton(discord.ui.Button):
 	'''Defines the working of a generic cancel button'''
+	
 	def __init__(self, user):
-		self.user = user
 		super().__init__(style = discord.ButtonStyle.danger, label = "Cancel", row = 2)
+		self.user: Union[discord.Member, discord.User] = user
 	
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user != self.user:
