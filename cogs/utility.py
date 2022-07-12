@@ -320,6 +320,7 @@ class Info(commands.Cog):
 		rolelength = 0
 		joindate = None
 		nick = None
+		timeout = False
 
 		if isinstance(user, discord.Member):
 			joindate = to_discord_timestamp(user.joined_at)
@@ -330,6 +331,7 @@ class Info(commands.Cog):
 				rolelength = len(rolelist)
 				roles = ", ".join(rolelist)
 			nick = user.nick
+			timeout = user.is_timed_out()
 
 		embed = discord.Embed(color = color, timestamp = datetime.datetime.now())
 		embed.add_field(name = "ID", value = ID, inline = False)
@@ -339,8 +341,8 @@ class Info(commands.Cog):
 		embed.add_field(name = "Joined", value = joindate, inline = False)
 		embed.add_field(name = "Flags", value = flags, inline = False)
 		embed.add_field(name = f"Roles [{rolelength}]", value = roles, inline = False)
-		if user.is_timed_out():
-			embed.add_field(name='Timeout Expiration', value= to_discord_timestamp(user.timed_out_until))
+		if timeout:
+			embed.add_field(name='Timeout Expiration', value = to_discord_timestamp(user.timed_out_until))
 		if user.avatar != None:
 			embed.set_thumbnail(url = user.avatar.url)
 			embed.set_author(name = user, icon_url = user.avatar.url)
