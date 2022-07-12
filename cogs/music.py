@@ -60,6 +60,7 @@ class Song(discord.PCMVolumeTransformer):
     @classmethod
     async def extract(cls, ctx: commands.Context, query: str, loop: asyncio.AbstractEventLoop = None, download: bool = False):
         loop = loop or asyncio.get_event_loop()
+
         data = await loop.run_in_executor(None, ytdl.extract_info, query, download)
 
         if data is None or data == {}:
@@ -192,7 +193,6 @@ class Player:
         if not self.playlist.full():
             song = await Song.extract(self.ctx, query, download = False)
             await self.playlist.put(song)
-            await self.ctx.send(embed = await song.discord_embed(True))
         else:
             raise asyncio.QueueFull('Cannot add more items to the playlist!')
         
@@ -227,7 +227,7 @@ class Music(commands.Cog):
             return player.vc.resume()
         await player.enqueue(query)
 
-    @commands.command(aliases = ('p'),)
+    @commands.command(aliases = ('p',))
     async def pause(self, ctx: commands.Context):
         player = self.get_player(ctx)
         if not player.vc.is_paused():
