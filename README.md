@@ -1,6 +1,6 @@
 This is a small Discord bot made with discord.py, used on the guild HoQ, and guilds related to it
 
-The original repo file also includes a decompressed static build for FFMPEG, which the bot uses for playing audio.
+The source also contains a static build of ffmpeg used for playing audio, which has not been uploaded here.
 
 Currently, the bot can:
 * Set AFK messages,
