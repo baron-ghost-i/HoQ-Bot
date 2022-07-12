@@ -53,28 +53,27 @@ class Moderation(commands.Cog):
 					
 	@commands.command()
 	@commands.has_permissions(ban_members = True)
-	async def ban(self, ctx, user:discord.User = None, *,reason = None):
+	async def ban(self, ctx: commands.Context, user:discord.User = None, *,reason = None):
 		'''Bans user from server'''
-		banentries = await ctx.guild.bans()
-		banlist = [i.user for i in banentries]
+		banlist = [i.user async for i in ctx.guild.bans()]
+		if user is None:
+			return
 		if isinstance(user, discord.Member) and user.guild_permissions.administrator:
-			return
-		elif user == None:
-			return
-		elif user in banlist:
+			return await ctx.send("Can't ban that user!")
+		if user in banlist:
 			async with ctx.channel.typing():
 				await asyncio.sleep(0.5)
-			await ctx.channel.send("User is already banned!")
+			return await ctx.channel.send("User is already banned!")
+
+		await ctx.guild.ban(user, reason = f"{reason}", delete_message_days = 0)
+		if reason != None:
+			async with ctx.channel.typing():
+				await asyncio.sleep(1)
+			await ctx.channel.send(embed = discord.Embed(description = f"**{user}** has been banned from the server. **Reason**: {reason}", color = discord.Color.gold()))
 		else:
-			await ctx.guild.ban(user, reason = f"{reason}", delete_message_days = 0)
-			if reason != None:
-				async with ctx.channel.typing():
-					await asyncio.sleep(1)
-				await ctx.channel.send(embed = discord.Embed(description = f"**{user}** has been banned from the server. **Reason**: {reason}", color = discord.Color.gold()))
-			else:
-				async with ctx.channel.typing():
-					await asyncio.sleep(1)
-				await ctx.channel.send(embed = discord.Embed(description = f"**{user}** has been banned from the server", color = discord.Color.gold()))
+			async with ctx.channel.typing():
+				await asyncio.sleep(1)
+			await ctx.channel.send(embed = discord.Embed(description = f"**{user}** has been banned from the server", color = discord.Color.gold()))
 					
 	@commands.command()
 	@commands.has_permissions(ban_members = True)
@@ -130,7 +129,7 @@ class Moderation(commands.Cog):
 	async def verify(self, ctx: commands.Context, member: discord.Member, *, name: str = None):
 		data = self.bot.db['roles'].find_one_and_delete({'user': member.id})
 		roles = []
-		if data != None:
+		if data is not None:
 			for i in data['roles']:
 				role = discord.utils.get(ctx.guild.roles, id = i)
 				roles.append(role)
