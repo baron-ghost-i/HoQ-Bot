@@ -78,6 +78,20 @@ def guildid(id: int) -> int:
 		return 612234021388156938
 	return id
 
-def to_discord_timestamp(time: datetime.datetime) -> str:
+def to_discord_timestamp(time: datetime.datetime, date_only: bool = False, rel: bool = False, precise: bool = False) -> str:
 	'''Returns a string which Discord interprets as a timestamp object'''
-	return "<t:"+str(round(time.timestamp()))+">"
+	base = "<t:"+str(round(time.timestamp()))
+		
+	if precise:
+		t = base + ":T>" + base + ":D>"
+			
+	elif date_only:
+		t = base + ":D>"
+		
+	else:
+		t = base + ">"
+
+	if rel:
+		t += f" ({base}:R>)"
+	
+	return t + ">"

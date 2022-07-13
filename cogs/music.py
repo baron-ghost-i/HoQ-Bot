@@ -2,6 +2,7 @@ import discord
 import youtube_dl
 import asyncio
 import itertools
+import datetime
 
 from discord.ext import commands
 from async_timeout import timeout
@@ -9,6 +10,8 @@ from typing import (
     Union,
     Optional
 )
+
+from utils.utils import to_discord_timestamp
 
 
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -41,12 +44,16 @@ class Song(discord.PCMVolumeTransformer):
     def __init__(self, source: discord.FFmpegPCMAudio, data: dict, ctx: commands.Context, volume: float = 1.0):
         super().__init__(source, volume)
         self.rawdata: dict = data
+        date = self.rawdata.get('upload_date')
+        date = datetime.datetime(year = int(date[:4]), month = int(date[4:6]), day = int(date[6:]))
+        date = to_discord_timestamp(date, date_only = True)
         self.processed_data: dict = {
             'thumbnail': self.rawdata.get('thumbnail'),
             'title': self.rawdata.get('title'),
             'url': self.rawdata.get('webpage_url'),
             'duration': self.get_duration(int(self.rawdata.get('duration'))),
-            'uploader': (self.rawdata.get('uploader'), self.rawdata.get('uploaded_url'))
+            'uploader': (self.rawdata.get('uploader'), self.rawdata.get('uploader_url')),
+            'upload_date': date
         }
         self.ctx = ctx
 
@@ -71,7 +78,7 @@ class Song(discord.PCMVolumeTransformer):
                 if entry:
                     data = entry
                     break
-        source = discord.FFmpegPCMAudio(data['url'], executable = "/home/vcap/app/ffmpeg-4.4-amd64-static/ffmpeg", options='-vn')
+        source = discord.FFmpegPCMAudio(data['url'], executable = '/home/vcap/app/ffmpeg-4.4-amd64-static/ffmpeg', options='-vn')
         return cls(source, data, ctx)
 
     def get_duration(self, duration: int) -> str:
@@ -103,17 +110,11 @@ class Song(discord.PCMVolumeTransformer):
             description = f'[{self.processed_data["title"]}]({self.processed_data["url"]})',
             timestamp = discord.utils.utcnow()
             )
-        
-        if self.processed_data['thumbnail'] is not None:
-            embed.set_thumbnail(url = self.processed_data['thumbnail'])
-        
-        if self.processed_data['duration'] is not None:
-            embed.add_field(name = 'Duration', value = self.processed_data['duration'])
-
-        if self.processed_data['uploader'][1] is not None:
-            embed.add_field(name = 'Uploaded By', value = f'[{self.processed_data["uploader"][0]}]({self.processed_data["uploader"][1]})')
-
-        embed.add_field(name = 'Requested By', value = self.ctx.author.mention)
+        embed.set_thumbnail(url = self.processed_data['thumbnail'])
+        embed.add_field(name = 'Duration', value = self.processed_data['duration'], inline = False)
+        embed.add_field(name = 'Uploaded By', value = f'[{self.processed_data["uploader"][0]}]({self.processed_data["uploader"][1]})')
+        embed.add_field(name = 'Uploaded On', value = self.processed_data['Upload_date'])
+        embed.add_field(name = 'Requested By', value = self.ctx.author.mention, inline = False)
 
         return embed
 
@@ -172,7 +173,7 @@ class Player:
                     async with timeout(180.0):
                         self.current: Song = await self.playlist.get()
                 except asyncio.TimeoutError:
-                    self.bot.loop.create_task(self.stop())
+                    self.bot.loop.create_task(self.stop(flag = True))
                     return
                 except:
                     raise
@@ -189,9 +190,11 @@ class Player:
             raise VoiceError(str(error))
         self.next.set()
 
-    async def stop(self):
+    async def stop(self, flag: bool = False):
         self.playlist.clear()
         self.vc.stop()
+        if flag and self.vc:
+            await self.vc.disconnect()
 
     async def enqueue(self, query: str):
         if not self.playlist.full():
@@ -261,17 +264,17 @@ class Music(commands.Cog):
     @play.before_invoke
     async def connect(self, ctx: commands.Context):
         if ctx.author.voice is None:
-            return await ctx.send("Connect to a voice channel first!")
+            await ctx.send("Connect to a voice channel first!")
         elif ctx.voice_client is not None:
             if ctx.voice_client.channel.members != [] and ctx.voice_client.is_playing():
                 await ctx.send("Can't switch vc while others are listening!")
-                return
             else:
-                return
+                pass
         else:
             await ctx.author.voice.channel.connect(timeout = 180.0)
             player = self.get_player(ctx)
             await ctx.send(f'Connected to channel **{player.vc.channel}**')
+
 
     @commands.command(aliases = ('dc',))
     async def disconnect(self, ctx: commands.Context):

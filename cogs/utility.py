@@ -303,7 +303,7 @@ class Info(commands.Cog):
 				raise commands.UserNotFound("Couldn't find any user!")
 		
 		name = f"{user.name}#{user.discriminator}"
-		regdate = to_discord_timestamp(user.created_at)
+		regdate = to_discord_timestamp(user.created_at, rel = True, precise = True)
 		ID = user.id
 		flags = user.public_flags.all()
 		if user.bot:
@@ -323,7 +323,7 @@ class Info(commands.Cog):
 		timeout = False
 
 		if isinstance(user, discord.Member):
-			joindate = to_discord_timestamp(user.joined_at)
+			joindate = to_discord_timestamp(user.joined_at, rel = True, precise = True)
 			rolelist = [i.mention for i in user.roles]
 			rolelist.pop(0)
 			rolelist.reverse()
@@ -342,7 +342,7 @@ class Info(commands.Cog):
 		embed.add_field(name = "Flags", value = flags, inline = False)
 		embed.add_field(name = f"Roles [{rolelength}]", value = roles, inline = False)
 		if timeout:
-			embed.add_field(name='Timeout Expiration', value = to_discord_timestamp(user.timed_out_until))
+			embed.add_field(name='Timeout Expiration', value = to_discord_timestamp(user.timed_out_until, precise = True, rel = True))
 		if user.avatar != None:
 			embed.set_thumbnail(url = user.avatar.url)
 			embed.set_author(name = user, icon_url = user.avatar.url)
@@ -389,7 +389,7 @@ class Info(commands.Cog):
 			embed.set_thumbnail(url = ctx.guild.icon.url)
 		embed.add_field(name = "Name", value = f"{ctx.guild.name}", inline = True)
 		embed.add_field(name = "Owner", value = f"{ctx.guild.owner}", inline = True)
-		embed.add_field(name = "Created on", value = to_discord_timestamp(ctx.guild.created_at), inline = False)
+		embed.add_field(name = "Created on", value = to_discord_timestamp(ctx.guild.created_at, rel = True), inline = False)
 		embed.add_field(name=f"Channel count[{ccount}]", value=channelstr)
 		embed.add_field(name = "Preferred locale", value = f"{str(ctx.guild.preferred_locale).upper()}", inline = False)
 		embed.add_field(name = "Verification level", value = f"{str(ctx.guild.verification_level).capitalize()}", inline = False)
