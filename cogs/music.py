@@ -260,7 +260,7 @@ class Music(commands.Cog):
         msg = "Looping the current song!" if player.loop else "Loop disabled!"
         await ctx.send(msg)
 
-    @commands.command()
+    @commands.command(aliases = ("join",))
     @play.before_invoke
     async def connect(self, ctx: commands.Context):
         if ctx.author.voice is None:
