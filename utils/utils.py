@@ -83,7 +83,7 @@ def to_discord_timestamp(time: datetime.datetime, date_only: bool = False, rel: 
 	base = "<t:"+str(round(time.timestamp()))
 		
 	if precise:
-		t = base + ":T>" + base + ":D>"
+		t = base + ":D>, " + base + ":T>"
 			
 	elif date_only:
 		t = base + ":D>"
