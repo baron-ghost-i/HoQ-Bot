@@ -15,7 +15,7 @@ youtube_dl.utils.bug_reports_message = lambda: ''
 
 
 ytdl_options = {
-	'format': 'mp3/bestaudio/worstaudio/worst/best',
+	'format': 'bestaudio/worstaudio/worst/best',
 	'quiet': True,
 	'ignoreerrors': False,
 	'source_address': '0.0.0.0',
@@ -82,7 +82,10 @@ class Song(discord.PCMVolumeTransformer):
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
 
-        duration_str = f"{hours} hours, {minutes} minutes, {seconds} seconds"
+        duration_str = f"{minutes} minutes, {seconds} seconds"
+
+        if bool(hours):
+            duration_str = f'{hours} hours, ' + duration_str
 
         if bool(days):
             duration_str = f'{days} days, ' + duration_str
@@ -166,10 +169,13 @@ class Player:
             self.next.clear()
             if not self.loop:
                 try:
-                    async with timeout(180):
+                    async with timeout(180.0):
                         self.current: Song = await self.playlist.get()
                 except TimeoutError:
                     self.bot.loop.create_task(self.stop())
+                    return
+                except:
+                    raise
             else:
                 if self.current:
                     self.current: Song = await Song.extract(ctx = self.current.ctx, query = self.current.processed_data['url'])
@@ -185,9 +191,7 @@ class Player:
 
     async def stop(self):
         self.playlist.clear()
-        self.current.cleanup()
-        if self.vc:
-            await self.vc.disconnect()
+        self.vc.stop()
 
     async def enqueue(self, query: str):
         if not self.playlist.full():
@@ -202,11 +206,14 @@ class Player:
         else:
             raise asyncio.QueueEmpty('Playlist is empty!')
 
+
+players = {}
+
+
 class Music(commands.Cog):
     
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.players: dict[int, Player] = {}
 
     def cog_check(self, ctx: commands.Context):
         if ctx.guild is None:
@@ -214,14 +221,17 @@ class Music(commands.Cog):
         return True
 
     def get_player(self, ctx: commands.Context) -> Player:
-        if ctx.guild.id in self.players:
-            return self.players[ctx.guild.id]
+        if ctx.guild.id in players.keys():
+            return players[ctx.guild.id]
         else:
-            self.players[ctx.guild.id] = Player(ctx, self.bot)
-            return self.players[ctx.guild.id]
+            players[ctx.guild.id] = Player(ctx, self.bot)
+            return players[ctx.guild.id]
+
+    def delete_player(self, ctx: commands.Context) -> Player:
+        return players.pop(ctx.guild.id)
 
     @commands.command()
-    async def play(self, ctx: commands.Context, query: str):
+    async def play(self, ctx: commands.Context, *, query: str):
         player = self.get_player(ctx)
         if player.vc.is_paused():
             return player.vc.resume()
@@ -244,41 +254,43 @@ class Music(commands.Cog):
     async def loop(self, ctx: commands.Context):
         player = self.get_player(ctx)
         player.loop = not player.loop
-        if player.loop:
-            msg = "Looping the current song!"
-        else:
-            msg = "Loop disabled!"
+        msg = "Looping the current song!" if player.loop else "Loop disabled!"
         await ctx.send(msg)
 
     @commands.command()
     @play.before_invoke
     async def connect(self, ctx: commands.Context):
-        if ctx.author.voice is None or ctx.author.voice.channel is None:
+        if ctx.author.voice is None:
             return await ctx.send("Connect to a voice channel first!")
-
-        if ctx.voice_client is not None:
+        elif ctx.voice_client is not None:
             if ctx.voice_client.channel.members != [] and ctx.voice_client.is_playing():
-                return await ctx.send("Can't switch vc while others are listening!")
+                await ctx.send("Can't switch vc while others are listening!")
+                return
             else:
-               return
-				
-        await ctx.author.voice.channel.connect(timeout = 180)
-        player = self.get_player(ctx)
-        await ctx.send(f'Connected to channel **{player.vc.channel}**')
+                return
+        else:
+            await ctx.author.voice.channel.connect(timeout = 180.0)
+            player = self.get_player(ctx)
+            await ctx.send(f'Connected to channel **{player.vc.channel}**')
 
-    @commands.command()
+    @commands.command(aliases = ('dc',))
     async def disconnect(self, ctx: commands.Context):
         if ctx.voice_client is None:
             return await ctx.send('Not connected to any voice channel!')
+        if ctx.voice_client.is_playing():
+            player = self.get_player(ctx)
+            await player.stop()
         await ctx.voice_client.disconnect()
+        self.delete_player(ctx)
         await ctx.send('Disconnected!')
 
     @commands.command(aliases = ('np',))
     async def now_playing(self, ctx):
         player = self.get_player(ctx)
-        await ctx.send(embed = await player.current.discord_embed(True))
+        if player.vc.is_playing():
+            await ctx.send(embed = await player.current.discord_embed(True))
 
-
+#to be created later
 class MusicPlayer(discord.ui.View):
 
     def __init__(self, queue: Playlist, client: discord.VoiceClient, listener: Union[discord.Member, discord.User]):
