@@ -171,7 +171,7 @@ class Player:
                 try:
                     async with timeout(180.0):
                         self.current: Song = await self.playlist.get()
-                except TimeoutError:
+                except asyncio.TimeoutError:
                     self.bot.loop.create_task(self.stop())
                     return
                 except:
