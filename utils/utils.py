@@ -94,4 +94,4 @@ def to_discord_timestamp(time: datetime.datetime, date_only: bool = False, rel: 
 	if rel:
 		t += f" ({base}:R>)"
 	
-	return t + ">"
+	return t
