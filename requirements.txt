@@ -6,3 +6,4 @@ opuslib
 pymongo
 dnspython
 cairosvg
+wheel
