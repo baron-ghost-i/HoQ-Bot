@@ -16,7 +16,6 @@ from utils.utils import to_discord_timestamp
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-
 ytdl_options = {
 	'format': 'bestaudio/worstaudio/worst/best',
 	'quiet': True,
@@ -27,8 +26,8 @@ ytdl_options = {
     'skip_download': True
 }
 
-
 ytdl = youtube_dl.YoutubeDL(ytdl_options)
+ytdl.cache.remove()
 
 
 class VoiceError(Exception):
@@ -44,18 +43,22 @@ class Song(discord.PCMVolumeTransformer):
     def __init__(self, source: discord.FFmpegPCMAudio, data: dict, ctx: commands.Context, volume: float = 1.0):
         super().__init__(source, volume)
         self.rawdata: dict = data
+        self.ctx = ctx
+		
         date = self.rawdata.get('upload_date')
         date = datetime.datetime(year = int(date[:4]), month = int(date[4:6]), day = int(date[6:]))
         date = to_discord_timestamp(date, date_only = True)
+		
         self.processed_data: dict = {
             'thumbnail': self.rawdata.get('thumbnail'),
             'title': self.rawdata.get('title'),
             'url': self.rawdata.get('webpage_url'),
             'duration': self.get_duration(int(self.rawdata.get('duration'))),
             'uploader': (self.rawdata.get('uploader'), self.rawdata.get('uploader_url')),
+            'views': self.processed_count(self.rawdata.get('view_count')),
+            'likes': self.processed_count(self.rawdata.get('like_count')),
             'upload_date': date
         }
-        self.ctx = ctx
 
         try:
             assert (self.processed_data['title'] is not None and self.processed_data['url'] is not None)
@@ -78,8 +81,18 @@ class Song(discord.PCMVolumeTransformer):
                 if entry:
                     data = entry
                     break
-        source = discord.FFmpegPCMAudio(data['url'], executable = '/home/vcap/app/ffmpeg-4.4-amd64-static/ffmpeg', options='-vn')
+        source = discord.FFmpegPCMAudio(data['url'], options='-vn')
         return cls(source, data, ctx)
+
+    def processed_count(self, n: int) -> str:
+        n = int(n)
+        if 1000 <= n < 10**6:
+            out = str(round(n/1000, 1))+"K"
+        elif 10*6 <= n < 10**9:
+            out = str(round(n/10**6, 1))+"M"
+        elif n >= 10**9:
+            out = str(round(n/10**9, 1))+"B"
+        return out
 
     def get_duration(self, duration: int) -> str:
         if duration is None:
@@ -111,9 +124,11 @@ class Song(discord.PCMVolumeTransformer):
             timestamp = discord.utils.utcnow()
             )
         embed.set_thumbnail(url = self.processed_data['thumbnail'])
-        embed.add_field(name = 'Duration', value = self.processed_data['duration'], inline = False)
         embed.add_field(name = 'Uploaded By', value = f'[{self.processed_data["uploader"][0]}]({self.processed_data["uploader"][1]})')
-        embed.add_field(name = 'Uploaded On', value = self.processed_data['Upload_date'])
+        embed.add_field(name = 'Uploaded On', value = self.processed_data['upload_date'])        
+        embed.add_field(name = 'Duration', value = self.processed_data['duration'], inline = False)
+        embed.add_field(name = 'Views', value = self.processed_data['views'])
+        embed.add_field(name = 'Likes', value = self.processed_data['likes'])
         embed.add_field(name = 'Requested By', value = self.ctx.author.mention, inline = False)
 
         return embed
@@ -181,7 +196,7 @@ class Player:
                 if self.current:
                     self.current: Song = await Song.extract(ctx = self.current.ctx, query = self.current.processed_data['url'])
 
-            await self.ctx.send(embed = await self.current.discord_embed(), delete_after = 10.0)
+            await self.ctx.send(embed = await self.current.discord_embed())
             self.vc.play(self.current, after = self.play_next)
             await self.next.wait()
 
@@ -243,22 +258,47 @@ class Music(commands.Cog):
     @commands.command(aliases = ('p',))
     async def pause(self, ctx: commands.Context):
         player = self.get_player(ctx)
-        if not player.vc.is_paused():
-            player.vc.pause()
-        else:
+        if player.vc is None:
+            return
+        if player.vc.is_paused():
             player.vc.resume()
+        else:
+            player.vc.pause()
     
     @commands.command()
     async def stop(self, ctx: commands.Context):
         player = self.get_player(ctx)
+        if player.vc is None:
+            return
         await player.stop()
 
     @commands.command()
     async def loop(self, ctx: commands.Context):
         player = self.get_player(ctx)
+        if player.vc is None:
+            return
         player.loop = not player.loop
         msg = "Looping the current song!" if player.loop else "Loop disabled!"
         await ctx.send(msg)
+
+    @commands.command(aliases = ('np',))
+    async def now_playing(self, ctx):
+        player = self.get_player(ctx)
+        if player.vc is None:
+            return
+        if not player.playlist.empty():
+            await ctx.send(embed = await player.current.discord_embed(True))
+
+    @commands.command(aliases = ('vol',))
+    async def volume(self, ctx, volume: int = None):
+        player = self.get_player(ctx)
+        if player.vc is None:
+            return
+        volume = int(volume)
+        if volume not in range(0,101):
+            return await ctx.send('Invalid value for volume provided, please provide a value between 0 and 100!')
+        player.volume = volume
+        await ctx.send(f"Volume set to {volume}%")
 
     @commands.command(aliases = ("join",))
     @play.before_invoke
@@ -286,12 +326,6 @@ class Music(commands.Cog):
         await ctx.voice_client.disconnect()
         self.delete_player(ctx)
         await ctx.send('Disconnected!')
-
-    @commands.command(aliases = ('np',))
-    async def now_playing(self, ctx):
-        player = self.get_player(ctx)
-        if player.vc.is_playing():
-            await ctx.send(embed = await player.current.discord_embed(True))
 
 #to be created later
 class MusicPlayer(discord.ui.View):
