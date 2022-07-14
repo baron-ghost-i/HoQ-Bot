@@ -215,6 +215,7 @@ class Player:
         if not self.playlist.full():
             song = await Song.extract(self.ctx, query, download = False)
             await self.playlist.put(song)
+            return song
         else:
             raise asyncio.QueueFull('Cannot add more items to the playlist!')
         
@@ -253,7 +254,8 @@ class Music(commands.Cog):
         player = self.get_player(ctx)
         if player.vc.is_paused():
             return player.vc.resume()
-        await player.enqueue(query)
+        song = await player.enqueue(query)
+        await ctx.send(embed = await song.discord_embed(flag = True))
 
     @commands.command(aliases = ('p',))
     async def pause(self, ctx: commands.Context):
@@ -311,7 +313,6 @@ class Music(commands.Cog):
             await ctx.author.voice.channel.connect(timeout = 180.0)
             player = self.get_player(ctx)
             await ctx.send(f'Connected to channel **{player.vc.channel}**')
-
 
     @commands.command(aliases = ('dc',))
     async def disconnect(self, ctx: commands.Context):

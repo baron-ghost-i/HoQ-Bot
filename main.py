@@ -38,7 +38,6 @@ class HoQBot(commands.Bot):
 			except:
 				raise
 
-
 	async def on_guild_join(self, guild):
 		id = guildid(guild.id)
 		try:
