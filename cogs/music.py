@@ -286,7 +286,7 @@ class Music(commands.Cog):
         player = self.get_player(ctx)
         if player.vc is None:
             return
-        if not player.playlist.empty():
+        if not player.vc.is_playing():
             await ctx.send(embed = await player.current.discord_embed(True))
 
     @commands.command(aliases = ('vol',))
@@ -306,10 +306,7 @@ class Music(commands.Cog):
         if ctx.author.voice is None:
             await ctx.send("Connect to a voice channel first!")
         elif ctx.voice_client is not None:
-            if ctx.voice_client.channel.members != [] and ctx.voice_client.is_playing():
-                await ctx.send("Can't switch vc while others are listening!")
-            else:
-                pass
+            return
         else:
             await ctx.author.voice.channel.connect(timeout = 180.0)
             player = self.get_player(ctx)
