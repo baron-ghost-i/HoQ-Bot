@@ -11,7 +11,7 @@ from typing import (
     Optional
 )
 
-from utils.utils import to_discord_timestamp
+from utils import to_discord_timestamp
 
 
 youtube_dl.utils.bug_reports_message = lambda: ''
