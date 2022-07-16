@@ -89,14 +89,14 @@ class Utils(commands.Cog):
 
 	async def _image(self, arg: str, gif: bool = False):
 		query = arg.replace(" ", "-")
-		if query in self.cache.keys() and gif == False:
+		if query in self.cache.keys() and not gif:
 			print('hit')
 			return self.cache[query]
-		elif query in self.cache2.keys() and gif == True:
+		elif query in self.cache2.keys() and gif:
 			print('hit')
 			return self.cache2[query]
 		else:
-			if gif == False:
+			if not gif:
 				param = "&fileType=jpg-png"
 			else:
 				param = "&fileType=gif"
@@ -138,56 +138,48 @@ class Utils(commands.Cog):
 		
 
 	@commands.command(aliases = ("im", "image"))
-	async def img(self, ctx, *, search):
+	async def img(self, ctx: commands.Context, *, search):
 		'''Returns a list of fifty images using Google search'''
 		embed, view = await self.execute_image(ctx.author, search)
 		msg = await ctx.send(embed = embed, view = view)
-		while True:
-			result = await view.wait()
-			if result:
-				await msg.edit(view = None)
-				break
-			elif not result:
-				break
+		result = await view.wait()
+		if result:
+			await msg.edit(view = None)
+		else:
+			pass
 	
 	@commands.command()
-	async def gif(self, ctx, *, search):
+	async def gif(self, ctx: commands.Context, *, search):
 		'''Returns a list of fifty GIFs using Google search''' 
 		embed, view = await self.execute_image(ctx.author, search, gif=True)
 		msg = await ctx.send(embed = embed, view = view)
-		while True:
-			result = await view.wait()
-			if result:
-				await msg.edit(view = None)
-				break
-			elif not result:
-				break
+		result = await view.wait()
+		if result:
+			await msg.edit(view = None)
+		else:
+			pass
 
 	@group.command(name = "image", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
 	async def image(self, interaction: discord.Interaction, search: str):
 		embed, view = await self.execute_image(interaction.user, search)
 		await interaction.response.send_message(embed = embed, view = view)
-		while True:
-			result = await view.wait()
-			if result:
-				await interaction.response.edit_message(view = None)
-				break
-			elif not result:
-				break
+		result = await view.wait()
+		if result:
+			await interaction.response.edit_message(view = None)
+		else:
+			pass
 
 	@group.command(name = "gif", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
 	async def GIF(self, interaction: discord.Interaction, search: str):
 		embed, view = await self.execute_image(interaction.user, search, gif=True)
 		await interaction.response.send_message(embed = embed, view = view)
-		while True:
-			result = await view.wait()
-			if result:
-				await interaction.response.edit_message(view = None)
-				break
-			elif not result:
-				break
+		result = await view.wait()
+		if result:
+			await interaction.response.edit_message(view = None)
+		else:
+			pass
 
 	@commands.command()
 	@commands.check(isme)
@@ -195,7 +187,8 @@ class Utils(commands.Cog):
 		self.cache.clear()
 		self.cache2.clear()
 		await ctx.send('Cleared image caches!')
-		
+
+	#to be recreated	
 	@commands.command()
 	async def poll(self, ctx, *args):
 		'''Creates a poll'''
