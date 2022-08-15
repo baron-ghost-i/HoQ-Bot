@@ -242,8 +242,9 @@ class Autoresponder(commands.Cog):
 	async def on_member_join(self, member):
 		if member.guild.id == 612234021388156938:
 			channel = self.bot.get_channel(612251604132823071)
-			await channel.send(f'''Welcome to HoQ {member.mention}! To get verified, post a link to your Quora account. If you do not have a Quora account, let us know how you found the server.
-Thank you for your patience! A moderator will verify you shortly.''')
+			await channel.send(f'''Welcome to HoQ {member.mention}!
+If you have a Quora account, make sure to send a link to it in this channel. If not, do let us know how you found us!
+A moderator will verify you shortly, thank you for your patience and have a good time!''')
 
 async def setup(bot):
 	await bot.add_cog(Autoresponder(bot))
