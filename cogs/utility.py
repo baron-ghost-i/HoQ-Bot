@@ -71,7 +71,7 @@ class GoogleView(discord.ui.View):
 			await asyncio.sleep(0.25)
 			await interaction.message.edit(embed=embed)
 		else:
-			await interaction.edit_original_message(content = "Invalid input provided")
+			await interaction.edit_original_response(content = "Invalid input provided")
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
 	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
