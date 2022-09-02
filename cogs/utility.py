@@ -9,8 +9,31 @@ import datetime
 from discord import app_commands
 from discord.ext import commands
 from utils import isme, ownercheck, to_discord_timestamp
-		
+
+class PageNo(discord.ui.Modal):
+
+	page = discord.ui.TextInput(
+		label='Which page would you like to go to?',
+		style=discord.TextStyle.short,
+		custom_id='pager',
+		placeholder='Enter page number',
+		min_length=1,
+		max_length=2
+		)
+
+	def __init__(self, title: str, timeout: float, custom_id: str):
+		self.pno: typing.Optional[int] = None
+		super().__init__(title=title, timeout=timeout, custom_id=custom_id)
+
+	async def on_submit(self, interaction: discord.Interaction):
+		if self.page.value.isdigit() and 1 <= int(self.page.value) <= 50:
+			self.pno = int(self.page.value)
+			await interaction.response.defer()
+		else:
+			await interaction.response.send_message('Invalid input! Please select a number between 1 and 50.', ephemeral=True)
+
 class GoogleView(discord.ui.View):
+
 	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
 		super().__init__(timeout = timeout)
 		self.bot = bot
@@ -55,23 +78,28 @@ class GoogleView(discord.ui.View):
 		
 	@discord.ui.button(style = discord.ButtonStyle.success, label = "❯❯")
 	async def jump(self, interaction: discord.Interaction, button: discord.ui.Button):
-		def check(message):
-			return message.content.isdigit() == True and 0 <= int(message.content) <= 50 and message.author == self.user
-		await interaction.response.send_message(content = "Which page would you like to go to?")
-		msg = await self.bot.wait_for("message", check = check)
-		if msg is not None:
-			self.count = int(msg.content)-1
-			link = self.resp[self.count][2]
-			if "(" in link and ")" in link:
-				link = link.replace("(", "\(").replace(")", "\)")
-			embed = discord.Embed(title = self.resp[self.count][0], url = self.resp[self.count][1], description = f"[Image URL]({link})", color = 0x00FF77, timestamp = datetime.datetime.now())
-			embed.set_image(url = self.resp[self.count][2])
-			embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
-			embed.set_author(name = self.user, icon_url = self.user.avatar.url)
-			await asyncio.sleep(0.25)
-			await interaction.message.edit(embed=embed)
-		else:
-			await interaction.edit_original_response(content = "Invalid input provided")
+		modal = PageNo(
+			title='Jump to Page',
+			timeout=15.0,
+			custom_id='page_jumper'
+			)
+
+		await interaction.response.send_modal(modal)
+		outcome = await modal.wait()
+		
+		if outcome:
+			return await interaction.channel.send('Timed out!', delete_after=5.0)
+
+		self.count = modal.pno - 1
+		link = self.resp[self.count][2]
+		if "(" in link and ")" in link:
+			link = link.replace("(", "\(").replace(")", "\)")
+		embed = discord.Embed(title = self.resp[self.count][0], url = self.resp[self.count][1], description = f"[Image URL]({link})", color = 0x00FF77, timestamp = datetime.datetime.now())
+		embed.set_image(url = self.resp[self.count][2])
+		embed.set_footer(text = f"Page {self.count+1} of {len(self.resp)}")
+		embed.set_author(name = self.user, icon_url = self.user.avatar.url)
+		await asyncio.sleep(0.25)
+		await interaction.message.edit(embed=embed)
 
 	@discord.ui.button(style = discord.ButtonStyle.danger, label = "×")
 	async def end(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -166,7 +194,7 @@ class Utils(commands.Cog):
 		await interaction.response.send_message(embed = embed, view = view)
 		result = await view.wait()
 		if result:
-			await interaction.response.edit_message(view = None)
+			await interaction.edit_original_response(view = None)
 		else:
 			pass
 
@@ -177,7 +205,7 @@ class Utils(commands.Cog):
 		await interaction.response.send_message(embed = embed, view = view)
 		result = await view.wait()
 		if result:
-			await interaction.response.edit_message(view = None)
+			await interaction.edit_original_response(view = None)
 		else:
 			pass
 
