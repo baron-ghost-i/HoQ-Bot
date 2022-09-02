@@ -24,6 +24,7 @@ class SelectMenu(discord.ui.Select):
 		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': type})]
 		for i in data:
 			emoji = i['response'] if type == 'reaction' or (i['response'].startswith('<') and i['response'].endswith(':>')) else f'<:regional_indicator_{type[0]}:>'
+			print(emoji)
 			opts.append(discord.SelectOption(label = i["trigger"], emoji = emoji))
 		
 		super().__init__(placeholder = "Select an option", options = opts)

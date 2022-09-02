@@ -1,11 +1,8 @@
 from discord.app_commands import CheckFailure
 from discord import Embed, Color, HTTPException
 from discord.ext import commands
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from discord import Interaction
-    from discord.app_commands import AppCommandError, CommandInvokeError
+from discord import Interaction
+from discord.app_commands import AppCommandError, CommandInvokeError
 
 class ErrorHandler(commands.Cog):
     def __init__(self, bot):
