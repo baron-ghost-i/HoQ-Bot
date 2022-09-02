@@ -23,13 +23,12 @@ class SelectMenu(discord.ui.Select):
 		self.id = gid
 		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': type})]
 		for i in data:
-			if type == 'reaction' or (i['response'].startswith('<') and i['response'].endswith(':>')):
+			if type == 'reaction' or (i['response'].startswith('<') and i['response'].endswith('>')):
 				emoji = i['response']
 			elif type == 'wildcard':
 				emoji = '🇼'
 			else:
 				emoji = '🇳'
-			print(emoji)
 			opts.append(discord.SelectOption(label = i["trigger"], emoji = emoji))
 		
 		super().__init__(placeholder = "Select an option", options = opts)
