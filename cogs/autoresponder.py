@@ -21,7 +21,7 @@ class SelectMenu(discord.ui.Select):
 		self._user = user
 		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
-		self.type = type
+		self._type = type
 		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': type})]
 		for i in data:
 			if type == 'reaction' or (i['response'].startswith('<') and i['response'].endswith('>')):
@@ -44,7 +44,7 @@ class SelectMenu(discord.ui.Select):
 		self.bot.db['autoresponder'].find_one_and_delete({
 			'guild': self.id,
 			'trigger': trigger,
-			'type': self.type
+			'type': self._type
 		})
 
 		await interaction.response.send_message("Trigger removed!")

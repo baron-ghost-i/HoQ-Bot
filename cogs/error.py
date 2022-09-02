@@ -59,7 +59,7 @@ class ErrorHandler(commands.Cog):
             if isinstance(error, CommandInvokeError):
                 error = error.original
             await interaction.response.send_message("An unexpected error occurred!", ephemeral = True)
-            await user.send(str(error))
+            await user.send(str(error.with_traceback()))
 
 async def setup(bot):
     await bot.add_cog(ErrorHandler(bot))
