@@ -87,7 +87,7 @@ class GoogleView(discord.ui.View):
 		await interaction.response.send_modal(modal)
 		outcome = await modal.wait()
 		
-		if outcome:
+		if outcome or modal.pno is None:
 			return await interaction.channel.send('Timed out!', delete_after=5.0)
 
 		self.count = modal.pno - 1
