@@ -22,9 +22,9 @@ class SelectMenu(discord.ui.Select):
 		self.blankopt = discord.SelectOption(label = "None")
 		self.id = gid
 		data = [{'trigger': i['trigger'], 'response': i['response']} for i in self.bot.db['autoresponder'].find({'guild': gid, 'type': type})]
-		
 		for i in data:
-			opts.append(discord.SelectOption(label = i["trigger"]))
+			emoji = i['response'] if type == 'reaction' or (i['response'].startswith('<') and i['response'].endswith(':>')) else f'<:regional_indicator_{type[0]}:>'
+			opts.append(discord.SelectOption(label = i["trigger"], emoji = emoji))
 		
 		super().__init__(placeholder = "Select an option", options = opts)
 
@@ -109,20 +109,20 @@ class Autoresponder(commands.Cog):
 	@commands.command(aliases = ('removeresp',))
 	@commands.guild_only()
 	@commands.check(admincheck)
-	async def removeresponse(self, ctx, *, trigger):
-		id = guildid(ctx.guild.id)
-		out = self.bot.db['autoresponder'].find_one_and_delete({
-			'guild': id,
-			'trigger': trigger
-		})
-		try:
-			assert out != None
-		except AssertionError:
-			await ctx.send("No such trigger found")
-		except:
-			raise
-		else:
-			await ctx.send("Trigger successfully removed")
+	async def removeresponse(self, ctx: commands.Context):
+		if not (ctx.author.guild_permissions.administrator):
+			await ctx.send("You do not have the permission to use this command!", delete_after = 5.0)
+			return
+			
+		ID = guildid(ctx.guild_id)
+		
+		if self.bot.db['autoresponder'].count_documents({'guild': ID, 'type': type.value}) == 0:
+			return await ctx.send("No trigger available under this category", delete_after = 5.0)	
+		
+		view = discord.ui.View(timeout=60.0)
+		view.add_item(SelectMenu(bot = self.bot, gid = ID, type=type.value, user=ctx.author))
+		view.add_item(CancelButton(user = ctx.author))
+		await ctx.send("Select the autoresponse to remove", view = view)
 
 	@app_commands.command(name='removeresponse', description='Removes a trigger-response pair from the autoresponder')
 	@app_commands.describe(type='Select the type of reaction to be removed')
