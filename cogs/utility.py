@@ -150,9 +150,9 @@ class Optionmaker(discord.ui.Modal):
 		cstr = [_option_template.format(str(i), getattr(self, f'Option{i}'), '0') for i in range(1, self.n+1)]
 		choices = [(i, getattr(self, f'Option{i}')) for i in range(1, (self.n + 1))]
 
-		msg = self.desc.value +  f'\n\n **__Ends At__** \n\n <t:{round(now.timestamp()+self.d)}>' + _partition + '\n'.join(cstr)
-
 		now = datetime.datetime.now()
+
+		msg = self.desc.value +  f'\n\n **__Ends At__** \n\n <t:{round(now.timestamp()+self.d)}>' + _partition + '\n'.join(cstr)
 
 		view = Poll(timeout = self.d, n = self.n, mv = self.mv, opts = choices)
 		embed = discord.Embed(
