@@ -1,3 +1,5 @@
+import traceback
+
 from discord.app_commands import CheckFailure
 from discord import Embed, Color, HTTPException
 from discord.ext import commands
@@ -51,7 +53,7 @@ class ErrorHandler(commands.Cog):
             user.send(str(error))
 
     @staticmethod
-    async def app_command_error_handler(interaction: 'Interaction', error: 'AppCommandError'):
+    async def app_command_error_handler(interaction: Interaction, error: AppCommandError):
         if isinstance(error, CheckFailure):
             await interaction.response.send_message('You don\'t have the permission to use this command!', ephemeral=True)
         else:
@@ -59,7 +61,11 @@ class ErrorHandler(commands.Cog):
             if isinstance(error, CommandInvokeError):
                 error = error.original
             await interaction.response.send_message("An unexpected error occurred!", ephemeral = True)
-            await user.send(str(error.with_traceback()))
+            message = f'''
+Error: {error}
+Traceback: {traceback.format_exc().rstrip()}
+            '''
+            await user.send(content = message)
 
 async def setup(bot):
     await bot.add_cog(ErrorHandler(bot))
