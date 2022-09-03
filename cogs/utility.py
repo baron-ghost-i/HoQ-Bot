@@ -10,6 +10,162 @@ from discord import app_commands
 from discord.ext import commands
 from utils import isme, ownercheck, to_discord_timestamp
 
+
+_option_template = "• (**{}**) {} — **{}** votes"
+
+_partition = '\n\n​**__Votes__**​\n\n'
+
+def change_votes(data: list, embed: discord.Embed, count: int, vc: dict) -> discord.Embed:
+	'''
+# Parameters \n
+* `data`:\n
+	Data related to vote to be updated
+* `embed`:\n
+	Embed associated with poll message
+* `count`:\n
+	Number of votes
+* `vc`:\n
+	A dictionary containing the number of votes each candidate has
+	'''
+
+	#using docstring for the sake of sanity
+
+	split = embed.description.split(_partition)
+	cstr = split[1].split('\n')
+	candidates = [i[0] for i in data]
+	for entry in cstr:
+		if int(entry[5]) in candidates:
+			name = data[candidates.index(int(entry[5]))][1]
+			cstr[cstr.index(entry)] = _option_template.format(entry[5], name, vc[int(entry[5])])
+
+	message = split[0]+_partition+'\n'.join(cstr)
+
+	embed2 = discord.Embed(
+		description = message,
+		color = embed.color,
+		title = embed.title,
+		timestamp = embed.timestamp
+	)
+	embed2.set_footer(text = embed.footer.text)
+
+	return embed2
+
+
+class Poll(discord.ui.View):
+
+	def __init__(self, timeout: float, n: int, mv: int, opts: list):
+		super().__init__(timeout = timeout)
+		for i in range(1, n+1):
+			button = PollButton(
+				value = i,
+				style = discord.ButtonStyle.primary,
+				label = str(i)
+				)
+			self.add_item(button)
+		self.add_item(ClearButton())
+			
+		self.max_v = mv
+		self.choices = opts
+		self.count: dict = {}
+		for i in self.choices:
+			self.count[i[0]] = 0
+
+		self.pollresult = {}
+		self.message: typing.Optional[discord.InteractionMessage] = None
+
+	async def on_timeout(self):
+		self.stop()
+		for i in self.children:
+			i.disabled = True
+		await self.message.edit(view = self)
+
+
+class PollButton(discord.ui.Button):
+	
+	def __init__(self, value: int, *args, **kwargs):
+		self.value = value
+		super().__init__(*args, **kwargs)
+		self.view: Poll
+
+	async def callback(self, interaction: discord.Interaction):
+		if interaction.user.id in self.view.pollresult and self.view.pollresult[interaction.user.id][0] == self.view.max_v:
+			return await interaction.response.send_message('You have already voted! Please clear your votes to try again.', ephemeral = True)
+		if interaction.user.id in self.view.pollresult:
+			self.view.pollresult[interaction.user.id][0] += 1
+			self.view.pollresult[interaction.user.id][1].append(self.value)
+		else:
+			self.view.pollresult[interaction.user.id] = [1, [self.value]]
+		
+		self.view.count[self.value] += 1
+		data = []
+		for i in self.view.pollresult[interaction.user.id][1]:
+			for j in self.view.choices:
+				if i == j[0]:
+					data.append(j)
+		embed = change_votes(data = data, embed = interaction.message.embeds[0], count = 1, vc = self.view.count)
+		await interaction.message.edit(embed = embed)
+		await interaction.response.send_message('Thank you for voting! Your vote has successfully been counted.', ephemeral = True)
+			
+
+class ClearButton(discord.ui.Button):
+	def __init__(self):
+		super().__init__(style = discord.ButtonStyle.danger, label = "✕ Clear Votes")
+		self.view: Poll
+
+	async def callback(self, interaction: discord.Interaction):
+		if interaction.user.id not in self.view.pollresult:
+			return await interaction.response.defer()
+
+		data = []
+		collector = self.view.pollresult.pop(interaction.user.id)[1]
+		for i in collector:
+			if self.view.count[i] > 0:
+				self.view.count[i] -= 1
+			for j in self.view.choices:
+				if i == j[0]:
+					data.append(j)
+
+		embed = change_votes(data = data, embed = interaction.message.embeds[0], count = data[0], vc = self.view.count)
+		await interaction.message.edit(embed = embed)
+		await interaction.response.send_message('Your votes have been cleared!', ephemeral = True)
+
+class Optionmaker(discord.ui.Modal):
+
+	desc = discord.ui.TextInput(
+		label = 'Description to be shown for the poll',
+		style = discord.TextStyle.paragraph,
+		placeholder = 'Enter description for the poll'
+		)
+	
+	def __init__(self, number: int, duration: float, mv: int, *args, **kwargs):
+		self.n = number
+		self.d = duration
+		self.mv = mv
+		super().__init__(*args, **kwargs)
+		for i in range (1, (self.n + 1)):
+			setattr(self, f'Option{i}', discord.ui.TextInput(label = f'Choice {i}', style = discord.TextStyle.short, placeholder = 'Enter choice name'))
+			self.add_item(getattr(self, f'Option{i}'))
+
+	async def on_submit(self, interaction: discord.Interaction):
+		cstr = [_option_template.format(str(i), getattr(self, f'Option{i}'), '0') for i in range(1, self.n+1)]
+		choices = [(i, getattr(self, f'Option{i}')) for i in range(1, (self.n + 1))]
+
+		msg = self.desc.value +  f'\n\n **__Ends At__** \n\n <t:{round(now.timestamp()+self.d)}>' + _partition + '\n'.join(cstr)
+
+		now = datetime.datetime.now()
+
+		view = Poll(timeout = self.d, n = self.n, mv = self.mv, opts = choices)
+		embed = discord.Embed(
+			colour = 0x00FF77,
+			title = 'POLL',
+			description = msg,
+			timestamp = now
+		)
+
+		await interaction.response.send_message(embed = embed, view = view)
+		view.message = await interaction.original_response()
+
+
 class PageNo(discord.ui.Modal):
 
 	page = discord.ui.TextInput(
@@ -21,9 +177,9 @@ class PageNo(discord.ui.Modal):
 		max_length=2
 		)
 
-	def __init__(self, title: str, timeout: float, custom_id: str):
+	def __init__(self, *args, **kwargs):
 		self.pno: typing.Optional[int] = None
-		super().__init__(title=title, timeout=timeout, custom_id=custom_id)
+		super().__init__(*args, **kwargs)
 
 	async def on_submit(self, interaction: discord.Interaction):
 		if self.page.value.isdigit() and 1 <= int(self.page.value) <= 50:
@@ -31,6 +187,7 @@ class PageNo(discord.ui.Modal):
 			await interaction.response.defer()
 		else:
 			await interaction.response.send_message('Invalid input! Please select a number between 1 and 50.', ephemeral=True)
+
 
 class GoogleView(discord.ui.View):
 
@@ -80,7 +237,7 @@ class GoogleView(discord.ui.View):
 	async def jump(self, interaction: discord.Interaction, button: discord.ui.Button):
 		modal = PageNo(
 			title='Jump to Page',
-			timeout=15.0,
+			timeout=30.0,
 			custom_id='page_jumper'
 			)
 
@@ -173,8 +330,6 @@ class Utils(commands.Cog):
 		result = await view.wait()
 		if result:
 			await msg.edit(view = None)
-		else:
-			pass
 	
 	@commands.command()
 	async def gif(self, ctx: commands.Context, *, search):
@@ -184,8 +339,6 @@ class Utils(commands.Cog):
 		result = await view.wait()
 		if result:
 			await msg.edit(view = None)
-		else:
-			pass
 
 	@group.command(name = "image", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
@@ -195,8 +348,6 @@ class Utils(commands.Cog):
 		result = await view.wait()
 		if result:
 			await interaction.edit_original_response(view = None)
-		else:
-			pass
 
 	@group.command(name = "gif", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
@@ -206,8 +357,6 @@ class Utils(commands.Cog):
 		result = await view.wait()
 		if result:
 			await interaction.edit_original_response(view = None)
-		else:
-			pass
 
 	@commands.command()
 	@commands.check(isme)
@@ -247,6 +396,30 @@ class Utils(commands.Cog):
 				await msg.add_reaction(emoji[i])
 		except:
 			raise
+
+	@app_commands.command(name = 'poll', description = 'Creates a poll')
+	@app_commands.describe(
+		number = 'Number of choices to add to the poll (a maximum of 24 options can be added)',
+		days = 'Duration (in days) for which the poll will accept votes.',
+		hours = 'Duration (in hours) for which the poll will accept votes. Defaults to 24 hours (1 day).',
+		max_votes = 'Maximum number of votes each member is allowed to cast. Default is 1'
+		)
+	async def _poll(self, interaction: discord.Interaction, number: int, days: float = 0.0, hours: float = 0.0, max_votes: int = 1):
+		
+		if number not in range(1, 25):
+			return await interaction.response.send_message('Please provide a valid number of choices!', ephemeral=True)
+		
+		if days == 0 and hours == 0:
+			return await interaction.response.send_message('Please provide a valid duration for the poll!', ephemeral=True)
+
+		if max_votes < 1:
+			return await interaction.response.send_message('Please provide a valid number for maximum votes allowed!', ephemeral = True)
+		
+		duration = round(days*24*60*60 + hours*60*60)
+
+		modal = Optionmaker(number = number, duration = duration, title = 'New Poll', mv = max_votes)
+		await interaction.response.send_modal(modal)
+
 
 class Math(commands.Cog):
 	def __init__(self, bot):
