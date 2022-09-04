@@ -144,7 +144,7 @@ class Optionmaker(discord.ui.Modal):
 		super().__init__(*args, **kwargs)
 
 	async def on_submit(self, interaction: discord.Interaction):
-		l = self.opts.split('\n')
+		l = self.opts.value.split('\n')
 		if len(l) != self.n:
 			return await interaction.response.send_message('Please provide as many choices as specified.', ephemeral = True)
 		
