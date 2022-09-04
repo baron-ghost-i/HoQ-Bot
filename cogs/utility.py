@@ -34,9 +34,10 @@ def change_votes(data: list, embed: discord.Embed, count: int, vc: dict) -> disc
 	cstr = split[1].split('\n')
 	candidates = [i[0] for i in data]
 	for entry in cstr:
-		if int(entry[5]) in candidates:
-			name = data[candidates.index(int(entry[5]))][1]
-			cstr[cstr.index(entry)] = _option_template.format(entry[5], name, vc[int(entry[5])])
+		i = cstr.index(entry)
+		if i in candidates:
+			name = data[candidates.index(i)][1]
+			cstr[i] = _option_template.format(i, name, vc[i])
 
 	message = split[0]+_partition+'\n'.join(cstr)
 
