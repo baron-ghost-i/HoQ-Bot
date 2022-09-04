@@ -81,7 +81,7 @@ class Song(discord.PCMVolumeTransformer):
                 if entry:
                     data = entry
                     break
-        source = discord.FFmpegPCMAudio(data['url'],executable = '/home/vcap/app/ffmpeg-4.4-amd64-static/ffmpeg', options='-vn')
+        source = discord.FFmpegPCMAudio(data['url'], options='-vn')
         return cls(source, data, ctx)
 
     def processed_count(self, n: int) -> str:
