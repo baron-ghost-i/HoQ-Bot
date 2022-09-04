@@ -34,7 +34,7 @@ def change_votes(data: list, embed: discord.Embed, count: int, vc: dict) -> disc
 	cstr = split[1].split('\n')
 	candidates = [i[0] for i in data]
 	for entry in cstr:
-		i = cstr.index(entry)
+		i = cstr.index(entry)+1
 		if i in candidates:
 			name = data[candidates.index(i)][1]
 			cstr[i] = _option_template.format(i, name, vc[i])
@@ -169,7 +169,7 @@ class Optionmaker(discord.ui.Modal):
 
 		await interaction.response.send_message(embed = embed, view = view)
 		partial_message = await interaction.original_response()
-		await asyncio.sleep(self.n)
+		await asyncio.sleep(self.d)
 		message = await partial_message.fetch()
 		for i in view.children:
 			i.disabled = True
