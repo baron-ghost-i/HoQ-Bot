@@ -73,12 +73,6 @@ class Poll(discord.ui.View):
 		self.pollresult = {}
 		self.message: typing.Optional[discord.InteractionMessage] = None
 
-	async def on_timeout(self):
-		self.stop()
-		for i in self.children:
-			i.disabled = True
-		await self.message.edit(view = self)
-
 
 class PollButton(discord.ui.Button):
 	
@@ -136,17 +130,27 @@ class Optionmaker(discord.ui.Modal):
 		style = discord.TextStyle.paragraph,
 		placeholder = 'Enter description for the poll'
 		)
+
+	opts = discord.ui.TextInput(
+                label = 'Choices (Enter each option in a new line)',
+                style = discord.TextStyle.paragraph,
+                placeholder = 'Poll choices'
+                )
 	
 	def __init__(self, number: int, duration: float, mv: int, *args, **kwargs):
 		self.n = number
 		self.d = duration
 		self.mv = mv
 		super().__init__(*args, **kwargs)
-		for i in range (1, (self.n + 1)):
-			setattr(self, f'Option{i}', discord.ui.TextInput(label = f'Choice {i}', style = discord.TextStyle.short, placeholder = 'Enter choice name'))
-			self.add_item(getattr(self, f'Option{i}'))
 
 	async def on_submit(self, interaction: discord.Interaction):
+		l = self.opts.split('\n')
+		if len(l) != self.n:
+			return await interaction.response.send_message('Please provide as many choices as specified.', ephemeral = True)
+		
+		for i in l:
+			setattr(self, f"Option{l.index(i)+1}", i)
+
 		cstr = [_option_template.format(str(i), getattr(self, f'Option{i}'), '0') for i in range(1, self.n+1)]
 		choices = [(i, getattr(self, f'Option{i}')) for i in range(1, (self.n + 1))]
 
@@ -163,7 +167,12 @@ class Optionmaker(discord.ui.Modal):
 		)
 
 		await interaction.response.send_message(embed = embed, view = view)
-		view.message = await interaction.original_response()
+		partial_message = await interaction.original_response()
+		await asyncio.sleep(self.n)
+		message = await partial_message.fetch()
+		for i in view.children:
+			i.disabled = True
+		await message.edit(view = view)
 
 
 class PageNo(discord.ui.Modal):
