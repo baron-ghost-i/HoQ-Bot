@@ -571,7 +571,7 @@ class Info(commands.Cog):
 		await ctx.send(embed = embed)
 
 	@app_commands.context_menu(name='About User')
-	async def whois(self, interaction: discord.Interaction, user: DiscordUser):
+	async def whois(self, interaction: discord.Interaction, user: typing.Union[discord.User, discord.Member]):
 		embed = await self.get_user_info(interaction. user)
 		await interaction.response.send_message(embed=embed, ephemeral=True)
 
