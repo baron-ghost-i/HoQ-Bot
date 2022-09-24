@@ -480,9 +480,17 @@ class Math(commands.Cog):
 		except:
 			raise
 
+
 class Info(commands.Cog):
 	def __init__(self, bot):
 		self.bot: commands.Bot = bot
+		self.bot.tree.add_command(
+			app_commands.ContextMenu(
+				name = "About User",
+				callback = self.whois,
+				type = discord.AppCommandType.user,
+			)
+		)
 		
 	@commands.command(aliases = ("av", "pfp"))
 	async def avatar(self, ctx, *, args: discord.User = None):
@@ -570,9 +578,9 @@ class Info(commands.Cog):
 		embed = await self.get_user_info(ctx, user)
 		await ctx.send(embed = embed)
 
-	@app_commands.context_menu(name='About User')
+	#context menu command
 	async def whois(self, interaction: discord.Interaction, user: typing.Union[discord.User, discord.Member]):
-		embed = await self.get_user_info(interaction. user)
+		embed = await self.get_user_info(interaction, user)
 		await interaction.response.send_message(embed=embed, ephemeral=True)
 
 	@commands.command()
