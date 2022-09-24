@@ -11,8 +11,11 @@ from discord.ext import commands
 from utils import isme, ownercheck, to_discord_timestamp
 
 
-_option_template = "• (**{}**) {} — **{}** votes"
+Context = typing.Union[commands.Context, discord.Interaction]
+DiscordUser = typing.Union[discord.Member, discord.User]
 
+
+_option_template = "• (**{}**) {} — **{}** votes"
 _partition = '\n\n​**__Votes__**​\n\n'
 
 def change_votes(data: list, embed: discord.Embed, count: int, vc: dict) -> discord.Embed:
@@ -41,15 +44,15 @@ def change_votes(data: list, embed: discord.Embed, count: int, vc: dict) -> disc
 
 	message = split[0]+_partition+'\n'.join(cstr)
 
-	embed2 = discord.Embed(
+	out_embed = discord.Embed(
 		description = message,
 		color = embed.color,
 		title = embed.title,
 		timestamp = embed.timestamp
 	)
-	embed2.set_footer(text = embed.footer.text)
+	out_embed.set_footer(text = embed.footer.text)
 
-	return embed2
+	return out_embed
 
 
 class Poll(discord.ui.View):
@@ -105,7 +108,6 @@ class PollButton(discord.ui.Button):
 class ClearButton(discord.ui.Button):
 	def __init__(self):
 		super().__init__(style = discord.ButtonStyle.danger, label = "✕ Clear Votes")
-		self.view: Poll
 
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user.id not in self.view.pollresult:
@@ -201,7 +203,7 @@ class PageNo(discord.ui.Modal):
 
 class GoogleView(discord.ui.View):
 
-	def __init__(self, bot, user: typing.Union[discord.Member, discord.User], resp: list, *, timeout: float = 90.0):
+	def __init__(self, bot, user: DiscordUser, resp: list, *, timeout: float = 90.0):
 		super().__init__(timeout = timeout)
 		self.bot = bot
 		self.user = user
@@ -480,7 +482,7 @@ class Math(commands.Cog):
 
 class Info(commands.Cog):
 	def __init__(self, bot):
-		self.bot = bot
+		self.bot: commands.Bot = bot
 		
 	@commands.command(aliases = ("av", "pfp"))
 	async def avatar(self, ctx, *, args: discord.User = None):
@@ -495,16 +497,21 @@ class Info(commands.Cog):
 		embed.set_footer(text = f"Requested by {ctx.author}")
 		await ctx.channel.send(embed = embed)
 
-	@commands.command(aliases = ("whois",))
-	async def userinfo(self, ctx, user: typing.Union[discord.Member, discord.User, int] = None):
+	async def get_user_info(self, ctx: Context, user: typing.Union[DiscordUser, int] = None):
 		'''Returns information about a specified member'''
-		if user == None:
-			user = ctx.author
+		if isinstance(ctx, commands.Context):
+			requester = ctx.author
+		else:
+			requester = ctx.user
+
+		if user is None:
+			user = requester
+
 		if isinstance(user, int):
 			try:
 				user = await self.bot.fetch_user(user)
 			except:
-				raise commands.UserNotFound("Couldn't find any user!")
+				raise commands.UserNotFound("Couldn't find any such user!")
 		
 		name = f"{user.name}#{user.discriminator}"
 		regdate = to_discord_timestamp(user.created_at, rel = True, precise = True)
@@ -516,10 +523,11 @@ class Info(commands.Cog):
 			flags = ", ".join([str(i).replace("UserFlags.", "").replace("_", " ").title() for i in flags])
 		else:
 			flags = None
-		if user.accent_color != None:
+		if user.accent_color is not None:
 			color = user.accent_color
 		else:
 			color = discord.Color.teal()
+
 		roles = None
 		rolelength = 0
 		joindate = None
@@ -547,17 +555,25 @@ class Info(commands.Cog):
 		embed.add_field(name = f"Roles [{rolelength}]", value = roles, inline = False)
 		if timeout:
 			embed.add_field(name='Timeout Expiration', value = to_discord_timestamp(user.timed_out_until, precise = True, rel = True))
-		if user.avatar != None:
+		if user.avatar:
 			embed.set_thumbnail(url = user.avatar.url)
 			embed.set_author(name = user, icon_url = user.avatar.url)
 		else:
 			embed.set_author(name = user)
-		embed.set_footer(text = f"Requested by {ctx.author}")
+		embed.set_footer(text = f"Requested by {requester}")
 		if user.banner:
 			embed.set_image(url = user.banner.url)
-		async with ctx.typing():
-			await asyncio.sleep(1)
+		return embed
+
+	@commands.command(aliases = ('whois','about'))
+	async def userinfo(self, ctx: commands.Context, user: typing.Union[DiscordUser, int] = None):
+		embed = await self.get_user_info(ctx, user)
 		await ctx.send(embed = embed)
+
+	@app_commands.context_menu(name='About User')
+	async def whois(self, interaction: discord.Interaction, user: DiscordUser):
+		embed = await self.get_user_info(interaction. user)
+		await interaction.response.send_message(embed=embed, ephemeral=True)
 
 	@commands.command()
 	@commands.guild_only()
