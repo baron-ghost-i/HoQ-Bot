@@ -1,6 +1,6 @@
+wheel
 aiohttp
 discord.py
 pymongo
 dnspython
 cairosvg
-wheel
