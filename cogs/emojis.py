@@ -147,7 +147,7 @@ class Emojis(commands.Cog):
 			return [app_commands.Choice(name=emoji.name, value=emoji.name) for emoji in emojis[:25]]
 
 		choicelist = [
-			app_commands.Choice(name = emoji.name, value = emoji.name) for emoji in emojis if current in emoji.name
+			app_commands.Choice(name = emoji.name, value = emoji.name) for emoji in emojis if current.lower() in emoji.name.lower()
 			]
 		if len(choicelist) > 25:
 			choicelist = choicelist[:25]
