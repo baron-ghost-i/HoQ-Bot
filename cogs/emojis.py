@@ -140,7 +140,7 @@ class Emojis(commands.Cog):
 		else:
 			await interaction.response.send_message(embed=result[0], file=result[1])
 
-	@_enlarge.autocomplete()
+	@_enlarge.autocomplete(name='emoji')
 	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
 		emojis = list(self.bot.emojis)
 		if current == '':
