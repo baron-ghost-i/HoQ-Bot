@@ -6,12 +6,13 @@ import cairosvg
 
 from io import BytesIO
 from PIL import Image
+from discord import app_commands
 from discord.ext import commands
 from utils import PaginatorView
 
 class Emojis(commands.Cog):
 	def __init__(self, bot):
-		self.bot = bot
+		self.bot: commands.Bot = bot
 
 	@commands.command(aliases = ("elist", "emojis"))
 	async def emojilist(self, ctx):
@@ -128,6 +129,29 @@ class Emojis(commands.Cog):
 			await ctx.send(embed=result)
 		else:
 			await ctx.send(embed=result[0], file = result[1])
+
+	@app_commands.command(name='enlarge', description='Returns a custom emoji in PNG or GIF format')
+	@app_commands.describe(emoji='Name of the emoji to be shown',
+	size='Size of the image (if static). Defaults to 256 px width')
+	async def _enlarge(self, interaction: discord.Interaction, emoji: str, size: int = 256):
+		result = await self.get_emoji(emoji=emoji, from_name = True)
+		if isinstance(result, discord.Embed):
+			await interaction.response.send_message(embed=result)
+		else:
+			await interaction.response.send_message(embed=result[0], file=result[1])
+
+	@_enlarge.autocomplete()
+	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
+		emojis = list(self.bot.emojis)
+		if current == '':
+			return emojis[:25]
+
+		choicelist = [
+			app_commands.Choice(name = emoji.name, value = emoji.name) for emoji in emojis if current in emoji.name
+			]
+		if len(choicelist) > 25:
+			choicelist = choicelist[:25]
+		return choicelist
 
 	@commands.command(aliases = ("addemoji", "addem"))
 	@commands.has_permissions(manage_emojis = True)
