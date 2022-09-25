@@ -134,7 +134,10 @@ class Emojis(commands.Cog):
 	@app_commands.describe(emoji='Name of the emoji to be shown',
 	size='Size of the image (if static). Defaults to 256 px width')
 	async def _enlarge(self, interaction: discord.Interaction, emoji: str, size: int = 256):
-		result = await self.get_emoji(emoji=emoji, from_name = True)
+		try:
+			result = await self.get_emoji(emoji=emoji, from_name = True, size=size)
+		except discord.HTTPException:
+			return await interaction.response.send_message("No such emoji exists, please check your input and try again!", ephemeral=True)
 		if isinstance(result, discord.Embed):
 			await interaction.response.send_message(embed=result)
 		else:
@@ -143,6 +146,9 @@ class Emojis(commands.Cog):
 	@_enlarge.autocomplete(name='emoji')
 	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
 		emojis = list(self.bot.emojis)
+		if interaction.guild:
+			emojis = list(interaction.guild.emojis) + emojis
+
 		if current == '':
 			return [app_commands.Choice(name=emoji.name, value=emoji.name) for emoji in emojis[:25]]
 
@@ -151,6 +157,7 @@ class Emojis(commands.Cog):
 			]
 		if len(choicelist) > 25:
 			choicelist = choicelist[:25]
+			
 		return choicelist
 
 	@commands.command(aliases = ("addemoji", "addem"))
