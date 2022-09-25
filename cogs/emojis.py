@@ -136,8 +136,11 @@ class Emojis(commands.Cog):
 	async def _enlarge(self, interaction: discord.Interaction, emoji: str, size: int = 256):
 		try:
 			result = await self.get_emoji(emoji=emoji, from_name = True, size=size)
-		except discord.HTTPException:
+		except commands.EmojiNotFound:
 			return await interaction.response.send_message("No such emoji exists, please check your input and try again!", ephemeral=True)
+		except:
+			raise
+		
 		if isinstance(result, discord.Embed):
 			await interaction.response.send_message(embed=result)
 		else:
@@ -157,7 +160,7 @@ class Emojis(commands.Cog):
 			]
 		if len(choicelist) > 25:
 			choicelist = choicelist[:25]
-			
+
 		return choicelist
 
 	@commands.command(aliases = ("addemoji", "addem"))
