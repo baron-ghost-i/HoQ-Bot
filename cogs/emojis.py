@@ -144,7 +144,7 @@ class Emojis(commands.Cog):
 	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
 		emojis = list(self.bot.emojis)
 		if current == '':
-			return emojis[:25]
+			return [app_commands.Choice(name=emoji.name, value=emoji.name) for emoji in emojis[:25]]
 
 		choicelist = [
 			app_commands.Choice(name = emoji.name, value = emoji.name) for emoji in emojis if current in emoji.name
