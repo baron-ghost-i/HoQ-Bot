@@ -36,8 +36,11 @@ class Emojis(commands.Cog):
 		else:
 			await ctx.channel.send("No emoji on this server")
 
+
+
 	async def get_emoji(self, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str], from_name: bool, size: int = 256):
 		embed = discord.Embed(timestamp = datetime.datetime.now())
+		
 		if not isinstance(emoji, str):
 			name = emoji.name
 			url = emoji.url
@@ -113,6 +116,8 @@ class Emojis(commands.Cog):
 			embed.set_footer(text=f'{dim[0]}×{dim[1]}')
 			return (embed, file)
 
+
+
 	@commands.command(aliases = ("e",))
 	async def enlarge(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str], size: int = 256):
 		'''Returns the image for an emoji'''
@@ -132,10 +137,10 @@ class Emojis(commands.Cog):
 
 	@app_commands.command(name='enlarge', description='Returns a custom emoji in PNG or GIF format')
 	@app_commands.describe(emoji='Name of the emoji to be shown',
-	size='Size of the image (if static). Defaults to 256 px width')
+	size='Size of the image (if static). Defaults to 256px width')
 	async def _enlarge(self, interaction: discord.Interaction, emoji: str, size: int = 256):
 		try:
-			result = await self.get_emoji(emoji=emoji, from_name = True, size=size)
+			result = await self.get_emoji(emoji=emoji, from_name=True, size=size)
 		except commands.EmojiNotFound:
 			return await interaction.response.send_message("No such emoji exists, please check your input and try again!", ephemeral=True)
 		except:
@@ -148,15 +153,18 @@ class Emojis(commands.Cog):
 
 	@_enlarge.autocomplete(name='emoji')
 	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
-		emojis = list(self.bot.emojis)
+		emojis = [i.name for i in self.bot.emojis]
 		if interaction.guild:
 			emojis = list(interaction.guild.emojis) + emojis
 
 		if current == '':
-			return [app_commands.Choice(name=emoji.name, value=emoji.name) for emoji in emojis[:25]]
+			if len(emojis) > 25:
+				emojis = emojis[:25]
+
+			return [app_commands.Choice(name=emoji, value=emoji) for emoji in emojis]
 
 		choicelist = [
-			app_commands.Choice(name = emoji.name, value = emoji.name) for emoji in emojis if current.lower() in emoji.name.lower()
+			app_commands.Choice(name = emoji, value = emoji) for emoji in emojis if current.lower() in emoji.lower()
 			]
 		if len(choicelist) > 25:
 			choicelist = choicelist[:25]
@@ -214,15 +222,15 @@ class Emojis(commands.Cog):
 				
 	@commands.command()
 	@commands.has_permissions(manage_emojis = True)
-	async def steal(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji], *, name = None):
+	async def steal(self, ctx: commands.Context, emoji: typing.Union[discord.Emoji, discord.PartialEmoji], *, name = None):
 		'''Duplicates emoji passed in the guild'''
 		try:
-			bemoji = await emoji.read()
+			b_emoji = await emoji.read()
 			if name == None:
 				name = emoji.name
 			else:
 				name = name.replace(" ", "_")
-			await ctx.guild.create_custom_emoji(name = name, image = bemoji)
+			await ctx.guild.create_custom_emoji(name = name, image = b_emoji)
 			await ctx.channel.send("Created emoji!")
 		except:
 			raise
