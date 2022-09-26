@@ -126,6 +126,7 @@ class ClearButton(discord.ui.Button):
 		await interaction.message.edit(embed = embed)
 		await interaction.response.send_message('Your votes have been cleared!', ephemeral = True)
 
+
 class Optionmaker(discord.ui.Modal):
 
 	desc = discord.ui.TextInput(
@@ -275,6 +276,9 @@ class GoogleView(discord.ui.View):
 		await interaction.response.edit_message(view = None)
 		self.stop()
 
+
+
+#beginning of cog definitions
 class Utils(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
@@ -284,6 +288,27 @@ class Utils(commands.Cog):
 
 	group = app_commands.Group(name='search', description='Queries Google for media')
 
+	@commands.command()
+	async def ping(self, ctx: commands.Context):
+		'''Returns websocket latency'''
+		ping = round(self.bot.latency*1000)
+		await ctx.channel.send(f"Ping: {ping} ms")
+
+	@app_commands.command(name='ping', description='Returns websocket latency (ping)')
+	async def _ping(self, interaction: discord.Interaction):
+		await interaction.response.send_message(f'Ping: {round(self.bot.latency*1000)} ms')
+		
+	@commands.command()
+	async def invite(self, ctx: commands.Context):
+		'''For inviting the bot, or joining the HoQ-QFC Joint Server'''
+		embed = discord.Embed(color = 0x00d5ff)
+		embed.set_author(name = "HoQ Bot", icon_url = "https://media.discordapp.net/attachments/850039242481991703/850043262232559676/HoQ.png")
+		embed.add_field(name = "Bot Invitation", value = "[Invite HoQ Bot!](https://discord.com/api/oauth2/authorize?client_id=849171433762193419&permissions=8&scope=bot%20applications.commands)", inline = False)
+		embed.add_field(name = "Server Invite", value = "[Join HoQ!](https://discord.com/invite/z2VP7SA)", inline = False)
+		embed.set_footer(text = "Not a public bot, to be used on HoQ and related servers only")
+		await ctx.channel.send(embed = embed)
+
+	#helper function for image searching
 	async def _image(self, arg: str, gif: bool = False):
 		query = arg.replace(" ", "-")
 		if query in self.cache.keys() and not gif:
@@ -321,7 +346,8 @@ class Utils(commands.Cog):
 				self.cache2.update({query: images})
 			return images
 
-	async def execute_image(self, user, search: str, gif: bool = False):
+	#helper function for image searching
+	async def process_image(self, user, search: str, gif: bool = False):
 		resp = await self._image(search, gif)
 		link = resp[0][2]
 		if "(" in link and ")" in link:
@@ -337,7 +363,7 @@ class Utils(commands.Cog):
 	@commands.command(aliases = ("im", "image"))
 	async def img(self, ctx: commands.Context, *, search):
 		'''Returns a list of fifty images using Google search'''
-		embed, view = await self.execute_image(ctx.author, search)
+		embed, view = await self.process_image(ctx.author, search)
 		msg = await ctx.send(embed = embed, view = view)
 		result = await view.wait()
 		if result:
@@ -346,7 +372,7 @@ class Utils(commands.Cog):
 	@commands.command()
 	async def gif(self, ctx: commands.Context, *, search):
 		'''Returns a list of fifty GIFs using Google search''' 
-		embed, view = await self.execute_image(ctx.author, search, gif=True)
+		embed, view = await self.process_image(ctx.author, search, gif=True)
 		msg = await ctx.send(embed = embed, view = view)
 		result = await view.wait()
 		if result:
@@ -355,7 +381,7 @@ class Utils(commands.Cog):
 	@group.command(name = "image", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
 	async def image(self, interaction: discord.Interaction, search: str):
-		embed, view = await self.execute_image(interaction.user, search)
+		embed, view = await self.process_image(interaction.user, search)
 		await interaction.response.send_message(embed = embed, view = view)
 		result = await view.wait()
 		if result:
@@ -364,7 +390,7 @@ class Utils(commands.Cog):
 	@group.command(name = "gif", description="Searches for static images")
 	@app_commands.describe(search="Query string to search with")
 	async def GIF(self, interaction: discord.Interaction, search: str):
-		embed, view = await self.execute_image(interaction.user, search, gif=True)
+		embed, view = await self.process_image(interaction.user, search, gif=True)
 		await interaction.response.send_message(embed = embed, view = view)
 		result = await view.wait()
 		if result:
