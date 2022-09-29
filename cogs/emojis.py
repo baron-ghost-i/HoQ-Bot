@@ -153,10 +153,10 @@ class Emojis(commands.Cog):
 
 	@_enlarge.autocomplete(name='emoji')
 	async def enlarge_autocomplete(self, interaction: discord.Interaction, current: str):
-		emojis = [i.name for i in self.bot.emojis]
+		l = [i.name for i in self.bot.emojis]
 		if interaction.guild:
-			emojis = list(interaction.guild.emojis) + emojis
-
+			emojis = [i.name for i in interaction.guild.emojis]
+			emojis += [i for i in l if i not in emojis]
 		if current == '':
 			if len(emojis) > 25:
 				emojis = emojis[:25]
